@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnableNETAnalyzers>True</EnableNETAnalyzers>
+    <AnalysisLevel>preview-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="examples\Getting Started with FLearn.fsx" />
+    <None Include="examples\Projections and the Lasso.fsx" />
+    <None Include="examples\Learning with Corruption.fsx" />
+    <None Include="examples\Multiclass Classification on MNIST.fsx" />
+    <None Include="examples\Variance Estimation.fsx" />
+    <Compile Include="Domain Types.fs" />
+    <Compile Include="Utilities.fs" />
+    <Compile Include="Distributions.fs" />
+    <Compile Include="LinkFunctions.fs" />
+    <Compile Include="LossFunctions.fs" />
+    <Compile Include="LearningWithCorruption.fs" />
+    <Compile Include="PerformanceMeasures.fs" />
+    <Compile Include="Herding.fs" />
+    <Compile Include="FeatureMaps.fs" />
+    <Compile Include="Learners.fs" />
+    <Compile Include="Projections.fs" />
+    <Compile Include="Sparse Learning.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+  </ItemGroup>
+
+</Project>

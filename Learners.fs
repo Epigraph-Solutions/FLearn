@@ -1,0 +1,258 @@
+﻿namespace FLearn
+
+[<AutoOpenAttribute>]
+module Learners =
+    open FLearn.Utilities
+    open MathNet.Numerics.LinearAlgebra
+
+    let predict (predictor : IPredictor<'instance>) (x : 'instance)  = predictor.Predict x
+    let predictOnline (learner : ILearner<'instance, 'label>) (x : 'instance)  = learner.PredictOnline x
+    let learn (example : _) (learner : ILearner<'instance, 'label>) = learner.Learn example
+    let inline learnSequence examples learner = 
+        for example in examples do
+            learn example learner
+    let learnSequenceVerbosely examples (learner : ILearner<'instance, 'label>) = 
+        let examples = 
+            examples
+            |> Seq.map (fun z ->
+                printfn "Count = %A Loss = %A" learner.Count learner.AverageLoss
+                z
+            )
+        learnSequence examples learner
+    let learnDistribution D numberOfSamples learner = 
+        let examples = 
+            D
+            |> Distribution.samples
+            |> Seq.take numberOfSamples
+        learnSequence examples learner
+    let learnDistributionVerbosely D numberOfSamples learner = 
+        let examples = 
+            D
+            |> Distribution.samples
+            |> Seq.take numberOfSamples
+        learnSequenceVerbosely examples learner
+    let tailAverage (learner : ILearner<'instance, 'label>) = learner.TailAverage()
+    let count (learner : ILearner<'instance, 'label>) = learner.Count
+    let averageLoss (learner : ILearner<'instance, 'label>) = learner.AverageLoss
+
+    [<StructuredFormatDisplay("count {Count}, loss {AverageLoss}")>]
+    type SGDLearner<'instance, 'label> =  
+        {
+            Features : IFeatureMap<'instance>
+            LossFunction : LossFunction<'label>
+            Weights : Weights
+            AverageWeights : Weights
+            mutable Count : float32
+            mutable AverageLoss : float32
+            mutable LearningRate : float32
+        }
+        
+        member this.FeatureMap (x : 'instance) = this.Features.FeatureMap x
+        
+        member this.Dimension = this.Features.Dimension
+        
+        interface IFeatureMap<'instance> with
+            member this.FeatureMap (x : 'instance) = this.FeatureMap x
+            member this.Dimension = this.Dimension   
+        
+        member this.PredictOnline (x : 'instance) = 
+            let f = this.Features.FeatureMap x
+            this.Weights * f
+
+        member this.Predict (x : 'instance) = 
+            let f = this.Features.FeatureMap x
+            this.AverageWeights * f
+
+        member this.learn (x, y) = 
+            let loss, gradient = 
+                let f = this.FeatureMap x
+                let prediction = this.Weights * f
+                let l, g = this.LossFunction.Loss y prediction
+                l, Vector.OuterProduct(g, f)
+            let newCount = this.Count + One
+            let newLearningRate = this.LearningRate + Matrix.normSquared gradient
+            let newAverageLoss = this.Count * this.AverageLoss / newCount + loss / newCount
+            
+            Matrix.gradientUpdate(this.Weights, gradient, newLearningRate)
+            Matrix.runningAverage(this.Count, this.AverageWeights, this.Weights)
+            
+            this.Count <- newCount
+            this.AverageLoss <- newAverageLoss
+            this.LearningRate <- newLearningRate
+
+        member this.TailAverage() = 
+            this.AverageWeights |> Matrix.mapInPlace (fun _ -> Zero)
+            this.AverageLoss <- Zero
+            this.Count <- Zero
+        
+        interface IPredictor<'instance> with 
+            member this.Predict x = this.Predict x
+
+        interface ILearner<'instance,'label> with
+            member this.LossFunction = this.LossFunction
+            member this.Count = this.Count
+            member this.AverageLoss = this.AverageLoss
+            member this.PredictOnline (x : 'instance) = this.PredictOnline x
+            member this.Learn example = this.learn example
+            member this.TailAverage() = this.TailAverage()
+    let createSGDLearner loss (features : IFeatureMap<'instance>) = 
+            let d = features.Dimension
+            {
+                Features = features
+                LossFunction = loss
+                Count = Zero
+                Weights = DenseMatrix.zero loss.Dimension d
+                AverageWeights = DenseMatrix.zero loss.Dimension d
+                AverageLoss = Zero
+                LearningRate = Zero
+            }        
+
+    [<StructuredFormatDisplay("count {Count}, loss {AverageLoss}")>]
+    type ProjectedSGDLearner<'instance, 'label> =  
+        {
+            Features : IFeatureMap<'instance>
+            LossFunction : LossFunction<'label>
+            Weights : Weights
+            AverageWeights : Weights
+            Projection : Projection
+            mutable Count : float32
+            mutable AverageLoss : float32
+            mutable LearningRate : float32
+        }
+    
+        member this.FeatureMap (x : 'instance) = this.Features.FeatureMap x
+    
+        member this.Dimension = this.Features.Dimension
+    
+        interface IFeatureMap<'instance> with
+            member this.FeatureMap (x : 'instance) = this.FeatureMap x
+            member this.Dimension = this.Dimension   
+    
+        member this.PredictOnline (x : 'instance) = 
+            let f = this.Features.FeatureMap x
+            this.Weights * f
+
+        member this.Predict (x : 'instance) = 
+            let f = this.Features.FeatureMap x
+            this.AverageWeights * f
+
+        member this.learn (x, y) = 
+            let loss, gradient = 
+                let f = this.FeatureMap x
+                let prediction = this.Weights * f
+                let l, g = this.LossFunction.Loss y prediction
+                l, Vector.OuterProduct(g, f)
+            let newCount = this.Count + One
+            let newLearningRate = this.LearningRate + Matrix.normSquared gradient
+            let newAverageLoss = this.Count * this.AverageLoss / newCount + loss / newCount
+        
+            Matrix.gradientUpdate(this.Weights, gradient, newLearningRate)
+            this.Projection this.Weights
+            Matrix.runningAverage(this.Count, this.AverageWeights, this.Weights)
+        
+            this.Count <- newCount
+            this.AverageLoss <- newAverageLoss
+            this.LearningRate <- newLearningRate
+
+        member this.TailAverage() = 
+            this.AverageWeights |> Matrix.mapInPlace (fun _ -> Zero)
+            this.AverageLoss <- Zero
+            this.Count <- Zero
+       
+        interface IPredictor<'instance> with 
+            member this.Predict x = this.Predict x
+
+        interface ILearner<'instance,'label> with
+            member this.LossFunction = this.LossFunction
+            member this.Count = this.Count
+            member this.AverageLoss = this.AverageLoss
+            member this.PredictOnline (x : 'instance) = this.PredictOnline x
+            member this.Learn example = this.learn example
+            member this.TailAverage() = this.TailAverage()
+    let createProjectedSGDLearner loss projection (features : IFeatureMap<'instance>) = 
+            let d = features.Dimension
+            {
+                Features = features
+                LossFunction = loss
+                Count = Zero
+                Weights = DenseMatrix.zero loss.Dimension d
+                AverageWeights = DenseMatrix.zero loss.Dimension d
+                Projection = projection
+                AverageLoss = Zero
+                LearningRate = Zero
+            }          
+
+    [<StructuredFormatDisplay("count {Count}, loss {AverageLoss}")>]
+    type AdaGradLearner<'instance, 'label> =  
+        {
+            Features : IFeatureMap<'instance>
+            LossFunction : LossFunction<'label>
+            Weights : Weights
+            AverageWeights : Weights
+            mutable Count : float32
+            mutable AverageLoss : float32
+            LearningRate : Weights
+            Gsquared : float32
+        }
+        
+        member this.FeatureMap (x : 'instance) = this.Features.FeatureMap x
+        
+        member this.Dimension = this.Features.Dimension
+        
+        interface IFeatureMap<'instance> with
+            member this.FeatureMap (x : 'instance) = this.FeatureMap x
+            member this.Dimension = this.Dimension   
+        
+        member this.PredictOnline (x : 'instance) = 
+            let f = this.Features.FeatureMap x
+            this.Weights * f
+        
+        member this.Predict (x : 'instance) = 
+            let f = this.Features.FeatureMap x
+            this.AverageWeights * f
+        
+        member this.learn (x, y) = 
+            let loss, gradient = 
+                let f = this.FeatureMap x
+                let prediction = this.Weights * f
+                let l, g = this.LossFunction.Loss y prediction
+                l, Vector.OuterProduct(g, f)
+            
+            let newCount = this.Count + One
+            let newAverageLoss = this.Count * this.AverageLoss / newCount + loss / newCount
+            
+            this.LearningRate |> Matrix.mapiInPlace (fun i j eta -> eta + pown (gradient.[i,j]) 2)
+
+            Matrix.adaGradUpdate(this.Weights, gradient, this.LearningRate, this.Gsquared)
+            Matrix.runningAverage(this.Count, this.AverageWeights, this.Weights)
+            
+            this.Count <- newCount
+            this.AverageLoss <- newAverageLoss
+        
+        member this.TailAverage() = 
+            this.AverageWeights |> Matrix.mapInPlace (fun _ -> Zero)
+            this.Count <- Zero
+            this.AverageLoss <- Zero
+
+        interface IPredictor<'instance> with 
+            member this.Predict x = this.Predict x
+
+        interface ILearner<'instance,'label> with
+            member this.LossFunction = this.LossFunction
+            member this.Count = this.Count
+            member this.AverageLoss = this.AverageLoss
+            member this.PredictOnline (x : 'instance) = this.PredictOnline x
+            member this.Learn example = this.learn example
+            member this.TailAverage() = this.TailAverage()
+    let createAdaGradLearner g loss (features : IFeatureMap<'instance>) : AdaGradLearner<_,_> = 
+            let d = features.Dimension
+            {
+                Features = features
+                LossFunction = loss
+                Count = Zero
+                Weights = DenseMatrix.zero loss.Dimension d
+                AverageWeights = DenseMatrix.zero loss.Dimension d
+                AverageLoss = Zero
+                Gsquared = g * g
+                LearningRate = DenseMatrix.create loss.Dimension d Zero
+            } 
