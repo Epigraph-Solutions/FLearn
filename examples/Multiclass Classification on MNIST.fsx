@@ -54,10 +54,8 @@ performanceLinear.[1]
 
 //Second Order Features
 let secondOrderLearner = 
-    randomPolynomialMap 3 d 500
+    randomPolynomialMap 2 d 500
     |> createAdaGradLearner 0.1f loss
-
-secondOrderLearner.FeatureMap (fst train.[0])
 
 learnSequenceVerbosely train secondOrderLearner
 
