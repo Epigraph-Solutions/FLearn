@@ -3,7 +3,7 @@
 [<AutoOpenAttribute>]
 module FeatureMaps = 
     open FLearn.Utilities
-    open FLearn.Herding
+    open FLearn.CoversAndSubSamples
     open MathNet.Numerics.LinearAlgebra
     open MathNet.Numerics.Distributions
 
@@ -126,9 +126,9 @@ module FeatureMaps =
                 member __.Dimension = numberOfFeatures
         }
 
-    let internal extractHerd (X : Matrix<float32>) (herd : Herd<int>) = 
-            let instances = herd.Instances |> Seq.map (fun i -> X.Row(i) )
-            herd.Weights, instances
+    let internal extractSample (X : Matrix<float32>) (weightedSample : WeightedSample<int>) = 
+            let instances = weightedSample.Instances |> Seq.map (fun i -> X.Row(i) )
+            weightedSample.Weights, instances
 
     type GaussianFeatureMap (sigma : float32, instances : seq<Vector<float32>>) = 
         let instanceMatrix = DenseMatrix.ofRowSeq instances
@@ -191,7 +191,7 @@ module FeatureMaps =
                 Two - g sigma distance 
                      
             let n = this.Dimension
-            let initialHerd : Herd<int> = 
+            let initialHerd : WeightedSample<int> = 
                 {Weights = [||] ; Instances = [|0 ..  n - 1|] }
             let error = pown error 2
 
@@ -208,14 +208,14 @@ module FeatureMaps =
                 let weightSimilariy = let s = weights.[i] * weights.[j] in if s > Zero then One else -One
                 Two - weightSimilariy * g sigma distance
        
-            let initialHerd : Herd<int> = 
+            let initialHerd : WeightedSample<int> = 
                 {Weights = weights |> Vector.asArray ; Instances = [|0 .. weights.Count - 1|]}
             let error = pown error 2
 
             initialHerd
             |> ClusteredSubsamplingParallel distanceSquared error numberOfPartitions maximumSize
             |> (fun h ->
-                let newWeights, newX = extractHerd instanceMatrix h
+                let newWeights, newX = extractSample instanceMatrix h
                 Vector.asVector newWeights, GaussianFeatureMap(sigma, newX)
             )
     let gaussianFeatureMap sigma instances = GaussianFeatureMap(sigma, instances)
@@ -226,7 +226,7 @@ module FeatureMaps =
             let n = h.Dimension
             DenseVector.create n (1.0f / float32 n), h
 
-        let collectNystromFeatureMaps (herds : seq<GaussianFeatureMap>) = GaussianFeatureMap.Collect herds
+        let collectGaussianFeatureMaps (herds : seq<GaussianFeatureMap>) = GaussianFeatureMap.Collect herds
         let subSample numberOfSamples (weights, h : GaussianFeatureMap) = h.SubSample (numberOfSamples, weights)
 
         ///Performs clustered sub sampling as in "An Average Classification Algorithm" Section 7
@@ -247,91 +247,3 @@ module FeatureMaps =
             let c = cover error f
             let w = projection c (w ,f)
             w, c
-
-        let NadarayaWatson sigma epsilon train = 
-            let n = single (Seq.length train)
-            if epsilon > Zero then 
-                let baseFeatures = 
-                    train 
-                    |> Seq.map fst
-                    |> gaussianFeatureMap sigma
-            
-                let reducedFeatures = 
-                    baseFeatures
-                    |> cover epsilon
-                
-                let w1 = 
-                    baseFeatures
-                    |> equalWeights
-                    |> projection reducedFeatures
-            
-                let w2 = 
-                    let weights = 
-                        train 
-                        |> Seq.map (fun x -> (snd x) / n )
-                        |> DenseVector.ofSeq
-                    (weights, baseFeatures)
-                    |> projection reducedFeatures
-            
-                {
-                    new IPredictor<'x> with
-                        member this.Predict x = 
-                            let f = reducedFeatures.FeatureMap x
-                            [|(w2 * f) / (w1 * f)|] |> DenseVector.raw
-                }
-            else
-                let baseFeatures = 
-                    train 
-                    |> Seq.map fst
-                    |> gaussianFeatureMap sigma
-            
-                let w1 = 
-                    baseFeatures
-                    |> equalWeights
-                    |> fst
-            
-                let w2 = 
-                    train 
-                    |> Seq.map (fun x -> (snd x) / n )
-                    |> DenseVector.ofSeq
-            
-                {
-                    new IPredictor<'x> with
-                        member this.Predict x = 
-                            let f = baseFeatures.FeatureMap x
-                            [|(w2 * f) / (w1 * f)|] |> DenseVector.raw
-                }
-
-        let kernelMeanClassifier sigma epsilon train = 
-            let n = single <| Seq.length train
-            if epsilon > Zero then 
-                let weights = 
-                    train
-                    |> Seq.map (fun (x, y) -> if y = 1 then One / n else -One / n)
-                    |> DenseVector.ofSeq
-                let baseFeatures =
-                    train
-                    |> Seq.map fst
-                    |> gaussianFeatureMap sigma
-                let w, f = 
-                    (weights, baseFeatures)
-                    |> reduce epsilon
-                {
-                    new IPredictor<Vector<float32>> with
-                        member this.Predict x = 
-                            [|w * f.FeatureMap(x)|] |> DenseVector.raw
-                }
-            else 
-                let weights = 
-                    train
-                    |> Seq.map (fun (x, y) -> if y = 1 then One / n else -One / n)
-                    |> DenseVector.ofSeq
-                let baseFeatures =
-                    train
-                    |> Seq.map fst
-                    |> gaussianFeatureMap sigma
-                {
-                    new IPredictor<Vector<float32>> with
-                        member this.Predict x = 
-                            [|weights * baseFeatures.FeatureMap(x)|] |> DenseVector.raw
-                }

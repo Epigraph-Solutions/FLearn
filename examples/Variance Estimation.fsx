@@ -17,6 +17,14 @@ let normal mean sigma =
 let uniform lower upper = 
     Distribution.create (fun () -> Sample.continuousUniform lower upper rnd)
 let toVector (x : float32) = DenseVector.raw [|x|]
+let toFloat (v : Vector<float32>) = v.[0]
+let shuffle (arr: _[]) =
+    let rand = new Random()
+    for i in arr.Length - 1 .. -1 .. 0 do
+        let j = rand.Next(i + 1)
+        let temp = arr.[i]
+        arr.[i] <- arr.[j]
+        arr.[j] <- temp
 
 //Distribution
 let Px = uniform -2.0 2.0
@@ -38,7 +46,7 @@ let P =
         let yMean = trueMean x
         let sigma = noise x
         let! y = normal yMean sigma
-        return float32 x, float32 y
+        return toVector(float32 x), float32 y
     }
 
 //Sample
@@ -49,45 +57,53 @@ let sample =
     |> Seq.take n 
     |> Seq.toArray
 
+//Define training protocol
+let train n sample learner = 
+    for i in 1 .. n - 1 do
+        shuffle sample
+        learnSequence sample learner
+        tailAverage learner
+    shuffle sample
+    learnSequence sample learner
+
 //Setting up Candidate Feature Maps
 let features sigma = 
     sample
-    |> Array.map (fst >> toVector)
+    |> Array.map fst
     |> gaussianFeatureMap sigma
     |> GaussianTools.cover 0.1f
-    |> preProcess toVector
 let featureMaps = Array.Parallel.map features [|0.01f .. 0.005f .. 0.05f|] 
 
 //Online Learning -- Mean
 let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps
-do Array.Parallel.iter (learnSequence sample) learnersMean
+do Array.Parallel.iter (train 2 sample) learnersMean
 let mean = Array.minBy averageLoss learnersMean
 
 //Online Learning -- Variance
 let errors = PerformanceMeasures.lossesBatch squareLoss sample mean |> Seq.toArray
 let learnersVariance = Array.map (createSGDLearner errorLoss) featureMaps
-do Array.Parallel.iter (learnSequence errors) learnersVariance
+do Array.Parallel.iter (train 2 errors) learnersVariance
 let variance = Array.minBy averageLoss learnersVariance
 
 //Charting
 let range = [|-2.0f .. 0.001f .. 2.0f|]
-let dataPlot = Scatter(x = Array.map fst sample, y = Array.map snd sample, mode= "markers")
+let dataPlot = Scatter(x = Array.map (fst >> toFloat) sample, y = Array.map snd sample, mode= "markers")
 let meanPlot = 
     Scatter(
         x = range, 
-        y = Array.map (mean.Predict >> standardLink) range, 
+        y = Array.map (toVector >> mean.Predict >> standardLink) range, 
         marker = Marker(color = "DarkRed") 
     )
 let upperErrorPlot = 
     Scatter(
         x = range,
-        y = Array.map (fun x -> standardLink(mean.Predict x) + 3.0f * sqrt(errorLink(variance.Predict x))) range,
+        y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) + 3.0f * sqrt(errorLink(variance.Predict x))) range,
         marker = Marker(color = "Red")
     )
 let lowerErrorPlot = 
     Scatter(
         x = range,
-        y = Array.map (fun x -> standardLink(mean.Predict x) - 3.0f * sqrt(errorLink(variance.Predict x))) range,
+        y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) - 3.0f * sqrt(errorLink(variance.Predict x))) range,
         marker = Marker(color = "Red")
     )
 let plot = Chart.Plot([dataPlot ; meanPlot ; upperErrorPlot ; lowerErrorPlot])

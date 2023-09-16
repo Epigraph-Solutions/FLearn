@@ -1,5 +1,5 @@
 ﻿#r "nuget: MathNet.Numerics.FSharp"
-#r "nuget: MathNet.Numerics.MKL.Win-x86"
+#r "nuget: MathNet.Numerics.MKL.Win-x64"
 #r "nuget: FLearn"
 
 open System
@@ -54,30 +54,14 @@ performanceLinear.[1]
 
 //Second Order Features
 let secondOrderLearner = 
-    randomPolynomialMap 2 d 500
-    |> createSGDLearner loss
+    randomPolynomialMap 3 d 500
+    |> createAdaGradLearner 0.1f loss
 
-let S = Distribution.empirical train
+secondOrderLearner.FeatureMap (fst train.[0])
 
-learnDistributionVerbosely S 10000 secondOrderLearner
-tailAverage secondOrderLearner
-learnDistributionVerbosely S 10000 secondOrderLearner
+learnSequenceVerbosely train secondOrderLearner
 
 let performanceSecondOrder = PerformanceMeasures.lossSummary [|loss ; zeroOneLoss k|] test secondOrderLearner
 secondOrderLearner.AverageLoss
 performanceSecondOrder.[0]
 performanceSecondOrder.[1]
-
-//Random Fourier Features
-let sigma = 6.0f
-let randomFourierFeatures = randomFourierFeatureMap sigma d 500
-let randomFourierLearner = createAdaGradLearner 1.0f loss randomFourierFeatures
-
-learnDistribution S 10000 randomFourierLearner
-tailAverage randomFourierLearner
-learnDistribution S 10000 randomFourierLearner
-
-let randomFourierPerformance = PerformanceMeasures.lossSummary [|loss ; zeroOneLoss k|] test randomFourierLearner
-randomFourierLearner.AverageLoss
-randomFourierPerformance.[0]
-randomFourierPerformance.[1]

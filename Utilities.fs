@@ -40,11 +40,6 @@ module internal Utilities =
             |> Seq.map (fun a -> async{return f a})
             |> Async.Parallel
             |> Async.RunSynchronously
-        let parallelMapi f (a : 'a []) = 
-            a
-            |> Seq.mapi (fun i a -> async{return f i a})
-            |> Async.Parallel
-            |> Async.RunSynchronously
 
     module Vector = 
         let asVector (x : float32 []) = x |> DenseVector.raw
@@ -65,10 +60,6 @@ module internal Utilities =
                         yield i, j, u * v
             }
             |> SparseMatrix.ofSeqi rows cols
-
-        let inline runningAverage (count : float32, v : Vector<float32>, u : Vector<float32>) =
-            for i in 0 .. v.Count - 1 do
-                v.[i] <- (count / (count + One)) * v.[i] + (One / (count + One)) * u.[i]
 
     module Matrix = 
         open MathNet.Numerics.Providers.LinearAlgebra
