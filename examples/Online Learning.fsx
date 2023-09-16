@@ -1,4 +1,5 @@
 ﻿#r "nuget: FLearn"
+#r "nuget: FSharpPlus"
 #r "nuget: XPlot.Plotly"
 
 open System

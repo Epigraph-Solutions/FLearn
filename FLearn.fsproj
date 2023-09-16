@@ -7,7 +7,7 @@
     <AnalysisLevel>preview-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.3</Version>
+    <Version>2.0.3.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +34,7 @@
     <None Include="examples\Learning with Corruption.fsx" />
     <None Include="examples\Multiclass Classification on MNIST.fsx" />
     <None Include="examples\Variance Estimation.fsx" />
+    <None Include="examples\Estimating Dependence.fsx" />
   </ItemGroup>
 
   <ItemGroup>

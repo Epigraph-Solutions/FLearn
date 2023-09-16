@@ -19,7 +19,7 @@ module Distribution =
     let create f = {Sample = f}
     let always x = {Sample = (fun () -> x)}
     let sample (p: Distribution<'a>) = p.Sample()
-    let samples (p: Distribution<'a>) = p |> Seq.unfold (fun p -> Some(sample p, p))
+    let samples (p: Distribution<'a>) = p |> Seq.unfold (fun p -> Some(sample p, p)) |> Seq.cache
     let map (f : 'a -> 'b) (p : Distribution<'a>) = {Sample = fun () -> let a = p.Sample() in f a}
     let map2 f p1 p2 = create (fun () -> let a, b = sample p1, sample p2 in f a b)
     let lift f x : Distribution<_> = always (f x)
