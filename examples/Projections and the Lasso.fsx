@@ -43,10 +43,7 @@ let learner = createProjectedSGDLearner loss projection features
 
 learnSequence train learner
 
-let performance = PerformanceMeasures.lossSummary [|loss ; zeroOneLoss 2|] test learner
-learner.AverageLoss
-performance.[0]
-performance.[1]
+let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner
 
 learner.AverageWeights.CoerceZero(0.01)
 learner.AverageWeights |> Matrix.toSeqSkipZeros |> Seq.length

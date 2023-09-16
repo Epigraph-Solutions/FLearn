@@ -47,10 +47,7 @@ let linearLearner =
 
 learnSequenceVerbosely train linearLearner
 
-let performanceLinear = PerformanceMeasures.lossSummary [|loss ; zeroOneLoss k|] test linearLearner
-linearLearner.AverageLoss
-performanceLinear.[0]
-performanceLinear.[1]
+let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test linearLearner
 
 //Second Order Features
 let secondOrderLearner = 
@@ -59,7 +56,4 @@ let secondOrderLearner =
 
 learnSequenceVerbosely train secondOrderLearner
 
-let performanceSecondOrder = PerformanceMeasures.lossSummary [|loss ; zeroOneLoss k|] test secondOrderLearner
-secondOrderLearner.AverageLoss
-performanceSecondOrder.[0]
-performanceSecondOrder.[1]
+let performanceSecondOrder = PerformanceMeasures.lossBatch (zeroOneLoss k) test secondOrderLearner

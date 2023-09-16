@@ -63,7 +63,7 @@ let features sigma =
     |> Array.map fst
     |> gaussianFeatureMap sigma
     |> GaussianTools.cover 0.1f
-let featureMaps = Array.Parallel.map features [|0.01f .. 0.01f .. 0.05f|] 
+let featureMaps = Array.Parallel.map features [|0.01f .. 0.005f .. 0.05f|] 
 
 //Online Learning -- Mean
 let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps

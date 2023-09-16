@@ -70,7 +70,4 @@ let learner = createSGDLearner loss features
 
 learnSequence corruptedTrain learner
 
-let performance = PerformanceMeasures.lossSummary [|loss ; zeroOneLossCC 2|] cleanTest learner
-learner.AverageLoss
-performance.[0]
-performance.[1]
+let performance = PerformanceMeasures.lossBatch (zeroOneLossCC 2) cleanTest learner
