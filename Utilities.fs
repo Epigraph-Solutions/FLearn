@@ -3,8 +3,6 @@
 module internal Utilities =
     open MathNet.Numerics.LinearAlgebra
     open MathNet.Numerics.LinearAlgebra.Single
-    
-    let rnd = System.Random()
 
     //Named Numbers
     let Zero = float32 0.0
@@ -24,9 +22,9 @@ module internal Utilities =
             let state = ref initialState
             let count = ref 0
             for x in a do 
-                state := f !count !state x
-                incr count
-            !state
+                state.Value <- f count.Value state.Value x
+                count.Value <- count.Value + 1
+            state.Value
         let inline argmax f (a : 'a []) = 
             foldi(fun i (j, max) x ->
                 let newMax = f x 
@@ -71,8 +69,8 @@ module internal Utilities =
             for i in 0 .. M.RowCount - 1 do
                 for j in 0 .. M.ColumnCount - 1 do
                     let x = M.[i, j]
-                    sum := !sum + x * x
-            !sum
+                    sum.Value <- sum.Value + x * x
+            sum.Value
         let inline denseMatrixAsValues (M : Matrix<float32>) = let M = M :?> DenseMatrix in M.Values
         let inline gradientUpdate (W : Weights, gradient, learningRate : float32) =
             let valuesW = denseMatrixAsValues W
@@ -88,15 +86,15 @@ module internal Utilities =
         let inline sparseNormSquared (M : Matrix<float32>) = 
             let sum = ref Zero 
             for x in Matrix.toSeqSkipZeros M do
-                sum := !sum + x * x
-            !sum
+                sum.Value <- sum.Value + x * x
+            sum.Value
         let inline sparseDotProduct (i, v1 : Matrix<float32>, v2) = 
             let sum = ref 0.0f
 
             for (j, v2) in Vector.toSeqiSkipZeros v2 do
-                sum := !sum + v2 * v1.[i,j]
+                sum.Value <- sum.Value + v2 * v1.[i,j]
 
-            !sum
+            sum.Value
         let inline sparseMultiply (M : Matrix<float32>, v2) = 
             DenseVector.init M.RowCount (fun i -> sparseDotProduct(i, M, v2) )
         let inline sparseGradientUpdate (W : Weights, gradient : Weights, learningRate : float32) = 

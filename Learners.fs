@@ -63,7 +63,7 @@ module Learners =
             let f = this.Features.FeatureMap x
             this.AverageWeights * f
 
-        member this.learn (x, y) = 
+        member this.Learn (x, y) = 
             let loss, gradient = 
                 let f = this.FeatureMap x
                 let prediction = this.Weights * f
@@ -93,7 +93,7 @@ module Learners =
             member this.Count = this.Count
             member this.AverageLoss = this.AverageLoss
             member this.PredictOnline (x : 'instance) = this.PredictOnline x
-            member this.Learn example = this.learn example
+            member this.Learn example = this.Learn example
             member this.TailAverage() = this.TailAverage()
     let createSGDLearner loss (features : IFeatureMap<'instance>) = 
             let d = features.Dimension
@@ -136,7 +136,7 @@ module Learners =
             let f = this.Features.FeatureMap x
             this.AverageWeights * f
 
-        member this.learn (x, y) = 
+        member this.Learn (x, y) = 
             let loss, gradient = 
                 let f = this.FeatureMap x
                 let prediction = this.Weights * f
@@ -167,7 +167,7 @@ module Learners =
             member this.Count = this.Count
             member this.AverageLoss = this.AverageLoss
             member this.PredictOnline (x : 'instance) = this.PredictOnline x
-            member this.Learn example = this.learn example
+            member this.Learn example = this.Learn example
             member this.TailAverage() = this.TailAverage()
     let createProjectedSGDLearner loss projection (features : IFeatureMap<'instance>) = 
             let d = features.Dimension
@@ -211,7 +211,7 @@ module Learners =
             let f = this.Features.FeatureMap x
             this.AverageWeights * f
         
-        member this.learn (x, y) = 
+        member this.Learn (x, y) = 
             let loss, gradient = 
                 let f = this.FeatureMap x
                 let prediction = this.Weights * f
@@ -242,7 +242,7 @@ module Learners =
             member this.Count = this.Count
             member this.AverageLoss = this.AverageLoss
             member this.PredictOnline (x : 'instance) = this.PredictOnline x
-            member this.Learn example = this.learn example
+            member this.Learn example = this.Learn example
             member this.TailAverage() = this.TailAverage()
     let createAdaGradLearner g loss (features : IFeatureMap<'instance>) : AdaGradLearner<_,_> = 
             let d = features.Dimension

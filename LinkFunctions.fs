@@ -7,7 +7,7 @@ module LinkFunctions =
     open MathNet.Numerics.LinearAlgebra
 
     let standardLink (prediction : Prediction) = prediction.[0]
-    let errorLink (prediction : Prediction) = exp(2.0f * prediction.[0])
+    let positiveRegressionLink (prediction : Prediction) = exp(2.0f * prediction.[0])
     let logisticLink (prediction : Prediction) = 
         let d = prediction.Count
         let Z = prediction |> Vector.fold (fun sum v -> sum + exp(v)) One

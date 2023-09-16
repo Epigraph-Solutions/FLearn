@@ -6,6 +6,7 @@ module LossFunctions =
     open FLearn.Utilities
     open MathNet.Numerics.LinearAlgebra
    
+    let lossIncurred (loss : LossFunction<'label>) y prediction = loss.Loss y prediction |> fst
     let zeroOneLoss numberOfClasses : LossFunction<int> = 
         {
             Dimension = numberOfClasses - 1
@@ -45,7 +46,7 @@ module LossFunctions =
                 if prediction.[0] > y then (One - q) * (prediction.[0] - y), [|One - q|] |> Vector.asVector
                 else q * (y - prediction.[0]), [|-q|] |> Vector.asVector
         }
-    let errorLoss : LossFunction<float32> = 
+    let positiveRegressionLoss : LossFunction<float32> = 
         { 
             Dimension = 1
             Loss = fun error prediction ->

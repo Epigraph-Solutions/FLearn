@@ -12,11 +12,6 @@
 
   <ItemGroup>
     <None Include="Readme.md" />
-    <None Include="examples\Getting Started with FLearn.fsx" />
-    <None Include="examples\Projections and the Lasso.fsx" />
-    <None Include="examples\Learning with Corruption.fsx" />
-    <None Include="examples\Multiclass Classification on MNIST.fsx" />
-    <None Include="examples\Variance Estimation.fsx" />
     <None Include="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -33,10 +28,20 @@
     <Compile Include="Learners.fs" />
     <Compile Include="Projections.fs" />
     <Compile Include="Sparse Learning.fs" />
+    <None Include="examples\Getting Started with FLearn.fsx" />
+    <None Include="examples\Online Learning.fsx" />
+    <None Include="examples\Projections and the Lasso.fsx" />
+    <None Include="examples\Learning with Corruption.fsx" />
+    <None Include="examples\Multiclass Classification on MNIST.fsx" />
+    <None Include="examples\Variance Estimation.fsx" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="8.0.100-beta.23418.2" />
   </ItemGroup>
 
 </Project>

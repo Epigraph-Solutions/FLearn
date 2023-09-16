@@ -72,7 +72,7 @@ let mean = Array.minBy averageLoss learnersMean
 
 //Online Learning -- Variance
 let errors = PerformanceMeasures.lossesBatch squareLoss sample mean
-let learnersVariance = Array.map (createSGDLearner errorLoss) featureMaps
+let learnersVariance = Array.map (createSGDLearner positiveRegressionLoss) featureMaps
 do Array.Parallel.iter (train 50000 errors) learnersVariance
 let variance = Array.minBy averageLoss learnersVariance
 
@@ -95,14 +95,14 @@ let meanPlot =
 let upperErrorPlot = 
     Scatter(
         x = range,
-        y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) + 3.0f * sqrt(errorLink(variance.Predict x))) range,
+        y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) + 3.0f * sqrt(positiveRegressionLink(variance.Predict x))) range,
         marker = Marker(color = "Red"),
         name = "Upper Bound"
     )
 let lowerErrorPlot = 
     Scatter(
         x = range,
-        y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) - 3.0f * sqrt(errorLink(variance.Predict x))) range,
+        y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) - 3.0f * sqrt(positiveRegressionLink(variance.Predict x))) range,
         marker = Marker(color = "Red"),
         name = "Lower Bound"
     )

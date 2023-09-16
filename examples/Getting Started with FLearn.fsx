@@ -35,9 +35,6 @@ let test =
     IO.File.ReadLines(testPath) 
     |> Seq.map parse
 
-Seq.length train
-Seq.length test
-
 //Logistic Regression
 let loss = logLoss 2
 let features = identityFeatureMap d

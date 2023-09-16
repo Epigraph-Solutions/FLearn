@@ -7,5 +7,5 @@ Built on top of the [Math.Net Numerics](https://numerics.mathdotnet.com/) linear
 
 1. Construct predictive models, with statistical and worst case guarantees, via the minimization of convex loss functions.
 2. Utilize feature maps such as those provided by random fourier features and the nystrom method.
-4. Make predictions and estimate their error! Think error bars and gaussian processes....
+3. Make predictions and estimate their error. Think error bars and gaussian processes.
 4. Learn from noisily labeled data via corruption corrected loss functions.
