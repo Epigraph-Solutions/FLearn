@@ -3,9 +3,9 @@
 [<AutoOpenAttribute>]
 module DistributionWorkflow =
     type DistributionBuilder() = 
-        member inline this.Return x : Distribution<_> = {Sample = (fun () -> x)}
+        member inline this.Return x : Distribution<_> = Distribution<_>.Return x
         member inline this.ReturnFrom(p : Distribution<'a>) = p
-        member inline this.Bind(p : Distribution<'a>, T: 'a -> Distribution<'b>) = {Sample = fun () -> let a = p.Sample() in (T a).Sample()}
+        member inline this.Bind(p : Distribution<'a>, T: 'a -> Distribution<'b>) = p >>= T
         member this.Delay(f: unit -> Distribution<'a>) = f ()
     let distribution = DistributionBuilder()
 

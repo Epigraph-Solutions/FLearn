@@ -1,5 +1,4 @@
-﻿#r @"C:\Users\User\OneDrive\Code\FLearn\bin\Release\net7.0\FLearn.dll"
-#r "nuget: MathNet.Numerics.FSharp"
+﻿#r "nuget: FLearn"
 #r "nuget: XPlot.Plotly"
 
 open System

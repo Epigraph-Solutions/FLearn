@@ -1,4 +1,4 @@
-﻿#r @"C:\Users\User\OneDrive\Code\FLearn\bin\Release\net7.0\FLearn.dll"
+﻿#r "nuget: FLearn"
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: XPlot.Plotly"
 
@@ -20,19 +20,11 @@ let toVector (x : float32) = DenseVector.raw [|x|]
 let toFloat (v : Vector<float32>) = v.[0]
 
 //Distribution
-let Px = uniform -2.0 2.0
+let Px = uniform -Math.PI Math.PI
 let trueMean x = 
-    if x < -2.0 / 3.0 then 3. * (x + 1.0) 
-    else if (x >= -2.0 / 3.0) && (x <= -1.0 / 3.0) then 1.0 + sin (30.0 * Math.PI * x / 2.0)
-    else if (x >= -1.0 / 3.0) && (x <= 0.0) then -3.0 * x
-    else sin (2.0 * Math.PI * x ) * sin (20.0 * Math.PI * x)
-let noise x = 
-    if x < 0.0 then  
-        0.25 * cos(2.0 * Math.PI * x) |> abs 
-    else if x > 0.0 && x < 1.0 then
-        0.25
-    else 
-        0.1 * cos(8.0 * Math.PI * x) |> abs
+    if x < 0.0 then 2.0 * x
+    else sin (2.0 * x)
+let noise x = 0.5 * cos(8.0 * x) |> abs
 let P = 
     distribution {
         let! x = Px
@@ -43,7 +35,7 @@ let P =
     }
 
 //Sample
-let n = 20000
+let n = 5000
 let sample = 
     P
     |> Distribution.samples 
@@ -63,7 +55,7 @@ let features sigma =
     |> Array.map fst
     |> gaussianFeatureMap sigma
     |> GaussianTools.cover 0.1f
-let featureMaps = Array.Parallel.map features [|0.01f .. 0.005f .. 0.05f|] 
+let featureMaps = Array.Parallel.map features [|0.1f .. 0.01f .. 0.3f|] 
 
 //Online Learning -- Mean
 let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps
@@ -77,7 +69,7 @@ do Array.Parallel.iter (train 50000 errors) learnersVariance
 let variance = Array.minBy averageLoss learnersVariance
 
 //Charting
-let range = [|-2.0f .. 0.001f .. 2.0f|]
+let range = [|-float32 Math.PI .. 0.001f .. float32 Math.PI|]
 let dataPlot = 
     Scatter(
         x = Array.map (fst >> toFloat) sample, 

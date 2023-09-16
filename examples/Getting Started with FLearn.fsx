@@ -1,5 +1,4 @@
 ﻿#r "nuget: FLearn"
-#r "nuget: MathNet.Numerics.FSharp"
 
 open System
 open FLearn

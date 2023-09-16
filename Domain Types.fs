@@ -9,8 +9,9 @@ module DomainTypes =
         { Sample : unit -> 'X}
 
         static member inline Map (f : 'a -> 'b, p : Distribution<'a>) = {Sample = fun () -> p.Sample() |> f}
-        static member inline Bind (p : Distribution<'a>, T : 'a -> Distribution<'b>) = {Sample = fun () -> let a = p.Sample() in (T a).Sample()}
-        static member inline Return(_ : Distribution<_>, a) = {Sample = fun () -> a}
+        static member inline Return (a) = {Sample = fun () -> a}
+        static member inline (>>=) (p : Distribution<'a>, T : 'a -> Distribution<'b>) = {Sample = fun () -> let a = p.Sample() in (T a).Sample()}
+        static member inline Join (p : Distribution<Distribution<'a>>) = {Sample = fun () -> p.Sample().Sample() }
         static member inline Zip (p1 : Distribution<'a>, p2 : Distribution<'b>) = 
             {
                 Sample = fun () ->
@@ -18,19 +19,21 @@ module DomainTypes =
                     let b = p2.Sample()
                     a, b
             }
-        static member inline Apply (f : Distribution<'a -> 'b>, p : Distribution<'a>) = 
+        static member inline Unzip (p : Distribution<'a * 'b>) = 
+            {
+                Sample = fun () ->
+                    p.Sample() |> fst
+            },
+            {
+                Sample = fun () ->
+                    p.Sample() |> snd
+            }
+        static member inline (<*>) (f : Distribution<'a -> 'b>, p : Distribution<'a>) = 
             {
                 Sample = fun () ->
                     let f = f.Sample()
                     let a = p.Sample()
                     f a
-            }
-        static member inline ZipApply (p : Distribution<'a>, T : 'a -> Distribution<'b>) = 
-            {
-                Sample = fun () ->
-                    let a = p.Sample()
-                    let b = (T a).Sample()
-                    a, b
             }
         static member inline (+)(p1 : Distribution<'a>, p2 : Distribution<'a>) = {Sample = fun () -> p1.Sample() + p2.Sample()}
         static member inline (+)(a1 : 'a, p2 : Distribution<'a>) = {Sample = fun () -> a1 + p2.Sample()}
