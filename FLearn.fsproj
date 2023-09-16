@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Readme.md" />
     <None Include="examples\Getting Started with FLearn.fsx" />
     <None Include="examples\Projections and the Lasso.fsx" />
     <None Include="examples\Learning with Corruption.fsx" />
