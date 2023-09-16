@@ -15,7 +15,7 @@ let path = @"C:\Users\User\OneDrive\Data\MNIST\"
 let trainPath = path + "MNIST train.txt"
 let testPath = path + "MNIST test.txt"
 
-//Parse Data
+//Parse SVM light format data to a vector and label
 let d = 784
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')

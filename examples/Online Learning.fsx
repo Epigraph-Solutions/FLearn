@@ -19,6 +19,7 @@ let runningAverage (arr: float32 []) =
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 
+//Parse SVM light format data to a vector and label
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')

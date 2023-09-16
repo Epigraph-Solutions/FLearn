@@ -9,3 +9,5 @@ Built on top of the [Math.Net Numerics](https://numerics.mathdotnet.com/) linear
 2. Utilize feature maps such as those provided by random fourier features and the nystrom method.
 3. Make predictions and estimate their error. Think error bars and gaussian processes.
 4. Learn from noisily labeled data via corruption corrected loss functions.
+
+Example usage of the package can be found [here](https://mlunhinged.visualstudio.com/_git/FLearn?path=/examples).
