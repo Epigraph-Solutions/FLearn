@@ -1,4 +1,4 @@
-﻿#r "nuget: FLearn"
+﻿#r @"C:\Users\User\OneDrive\Code\FLearn\bin\Release\net7.0\FLearn.dll"
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: XPlot.Plotly"
 
@@ -18,13 +18,6 @@ let uniform lower upper =
     Distribution.create (fun () -> Sample.continuousUniform lower upper rnd)
 let toVector (x : float32) = DenseVector.raw [|x|]
 let toFloat (v : Vector<float32>) = v.[0]
-let shuffle (arr: _[]) =
-    let rand = new Random()
-    for i in arr.Length - 1 .. -1 .. 0 do
-        let j = rand.Next(i + 1)
-        let temp = arr.[i]
-        arr.[i] <- arr.[j]
-        arr.[j] <- temp
 
 //Distribution
 let Px = uniform -2.0 2.0
@@ -58,13 +51,11 @@ let sample =
     |> Seq.toArray
 
 //Define training protocol
-let train n sample learner = 
-    for i in 1 .. n - 1 do
-        shuffle sample
-        learnSequence sample learner
-        tailAverage learner
-    shuffle sample
-    learnSequence sample learner
+let train n sample learner =
+    let S = Distribution.empirical sample
+    learnDistribution S n learner
+    tailAverage learner
+    learnDistribution S n learner
 
 //Setting up Candidate Feature Maps
 let features sigma = 
@@ -72,39 +63,48 @@ let features sigma =
     |> Array.map fst
     |> gaussianFeatureMap sigma
     |> GaussianTools.cover 0.1f
-let featureMaps = Array.Parallel.map features [|0.01f .. 0.005f .. 0.05f|] 
+let featureMaps = Array.Parallel.map features [|0.01f .. 0.01f .. 0.05f|] 
 
 //Online Learning -- Mean
 let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps
-do Array.Parallel.iter (train 2 sample) learnersMean
+do Array.Parallel.iter (train 50000 sample) learnersMean
 let mean = Array.minBy averageLoss learnersMean
 
 //Online Learning -- Variance
-let errors = PerformanceMeasures.lossesBatch squareLoss sample mean |> Seq.toArray
+let errors = PerformanceMeasures.lossesBatch squareLoss sample mean
 let learnersVariance = Array.map (createSGDLearner errorLoss) featureMaps
-do Array.Parallel.iter (train 2 errors) learnersVariance
+do Array.Parallel.iter (train 50000 errors) learnersVariance
 let variance = Array.minBy averageLoss learnersVariance
 
 //Charting
 let range = [|-2.0f .. 0.001f .. 2.0f|]
-let dataPlot = Scatter(x = Array.map (fst >> toFloat) sample, y = Array.map snd sample, mode= "markers")
+let dataPlot = 
+    Scatter(
+        x = Array.map (fst >> toFloat) sample, 
+        y = Array.map snd sample, 
+        mode= "markers", 
+        name = "Data"
+    )
 let meanPlot = 
     Scatter(
         x = range, 
         y = Array.map (toVector >> mean.Predict >> standardLink) range, 
-        marker = Marker(color = "DarkRed") 
+        marker = Marker(color = "DarkRed"),
+        name = "Mean"
     )
 let upperErrorPlot = 
     Scatter(
         x = range,
         y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) + 3.0f * sqrt(errorLink(variance.Predict x))) range,
-        marker = Marker(color = "Red")
+        marker = Marker(color = "Red"),
+        name = "Upper Bound"
     )
 let lowerErrorPlot = 
     Scatter(
         x = range,
         y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) - 3.0f * sqrt(errorLink(variance.Predict x))) range,
-        marker = Marker(color = "Red")
+        marker = Marker(color = "Red"),
+        name = "Lower Bound"
     )
 let plot = Chart.Plot([dataPlot ; meanPlot ; upperErrorPlot ; lowerErrorPlot])
 

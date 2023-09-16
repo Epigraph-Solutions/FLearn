@@ -14,7 +14,7 @@ module Distribution =
     open FLearn.Utilities
     open MathNet.Numerics.Distributions
 
-    let rnd = new MathNet.Numerics.Random.SystemRandomSource()
+    let rnd = new MathNet.Numerics.Random.SystemRandomSource(threadSafe = true)
 
     let create f = {Sample = f}
     let always x = {Sample = (fun () -> x)}

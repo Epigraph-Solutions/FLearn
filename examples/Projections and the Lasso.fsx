@@ -5,7 +5,7 @@ open System
 open FLearn
 open MathNet.Numerics.LinearAlgebra
 
-//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my resultslet path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
+//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
