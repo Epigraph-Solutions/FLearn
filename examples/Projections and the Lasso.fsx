@@ -38,7 +38,7 @@ let test =
 //Logistic Regression------------------------------------------------------------------------------------------------------------
 let loss = logLoss 2
 let features = identityFeatureMap d
-let projection = Projections.L1Ball 10.0f
+let projection = Projections.L1Ball 5.0f
 let learner = createProjectedSGDLearner loss projection features 
 
 learnSequence train learner

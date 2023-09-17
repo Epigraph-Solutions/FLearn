@@ -43,17 +43,26 @@ let loss = logLoss k
 //First Order Features
 let linearLearner = 
     identityFeatureMap d
-    |> createSGDLearner loss
+    |> createAdaGradLearner 10.0f loss
 
 learnSequenceVerbosely train linearLearner
 
 let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test linearLearner
 
-//Second Order Features
+//Second Order Features 
 let secondOrderLearner = 
     randomPolynomialMap 2 d 500
-    |> createSGDLearner loss 
+    |> createSGDLearner loss
 
 learnSequenceVerbosely train secondOrderLearner
 
 let performanceSecondOrder = PerformanceMeasures.lossBatch (zeroOneLoss k) test secondOrderLearner
+
+//Random Fourier Features
+let randomFourierLearner = 
+    randomFourierFeatureMap 6.0f d 500
+    |> createAdaGradLearner 0.01f loss 
+
+learnSequenceVerbosely train randomFourierLearner
+
+let performanceRandomFourier = PerformanceMeasures.lossBatch (zeroOneLoss k) test randomFourierLearner

@@ -70,34 +70,33 @@ let variance = Array.minBy averageLoss learnersVariance
 
 //Charting
 let range = [|-float32 Math.PI .. 0.001f .. float32 Math.PI|]
-let dataPlot = 
+
+[
     Scatter(
         x = Array.map (fst >> toFloat) sample, 
         y = Array.map snd sample, 
         mode= "markers", 
         name = "Data"
-    )
-let meanPlot = 
+    );
     Scatter(
         x = range, 
         y = Array.map (toVector >> mean.Predict >> standardLink) range, 
         marker = Marker(color = "DarkRed"),
         name = "Mean"
-    )
-let upperErrorPlot = 
+    );
     Scatter(
         x = range,
         y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) + 3.0f * sqrt(positiveRegressionLink(variance.Predict x))) range,
         marker = Marker(color = "Red"),
         name = "Upper Bound"
-    )
-let lowerErrorPlot = 
+    );
     Scatter(
         x = range,
         y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) - 3.0f * sqrt(positiveRegressionLink(variance.Predict x))) range,
         marker = Marker(color = "Red"),
         name = "Lower Bound"
-    )
-let plot = Chart.Plot([dataPlot ; meanPlot ; upperErrorPlot ; lowerErrorPlot])
+    );
 
-do plot.Show()
+]
+|> Chart.Plot
+|> Chart.Show

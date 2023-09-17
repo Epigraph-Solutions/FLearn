@@ -39,9 +39,14 @@ let parse (s : string) =
         featureVector.[d - 1] <- 1.0f
 
     (featureVector, label)
-let train = 
+let data = 
     IO.File.ReadLines(trainPath) 
     |> Seq.map parse
+let train =
+    data
+    |> Distribution.empirical
+    |> Distribution.samples
+    |> Seq.take 50000
 
 //Online Logistic Regression
 let loss = logLoss 2
@@ -58,8 +63,12 @@ let onlineRun =
     |> Seq.toArray
     |> runningAverage
 
-let plot = Scatter(x = [0 .. onlineRun.Length - 1], y = onlineRun)
-do Chart.Plot(plot).Show()
-
 let performance = PerformanceMeasures.lossBatch loss train learner
 let performanceOnline = onlineRun[onlineRun.Length - 1]
+
+[
+    Scatter(x = [0 .. onlineRun.Length - 1], y = onlineRun) ;
+    Scatter(x = [0 .. onlineRun.Length - 1], y = Seq.replicate onlineRun.Length performance)
+]
+|> Chart.Plot
+|> Chart.Show

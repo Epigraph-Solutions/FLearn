@@ -26,7 +26,7 @@ let uniform lower upper =
 let P sigma = 
     distribution {
         let! x = uniform -Math.PI Math.PI
-        let! y = normal x sigma
+        let! y = normal (sin x) sigma
         return float32 x, float32 y
     }
 
@@ -49,7 +49,11 @@ let indepenceRating (P : Distribution<float32 * float32>) =
 
     learnDistribution D 10000 learner
     averageLoss learner
+let independences = [|0.1 .. 0.1 .. 5.0|] |> Array.Parallel.map (P >> indepenceRating)
 
-let independences = [|0.1 .. 0.1 .. 2.0|] |>> (P >> indepenceRating)
-
-Scatter(x = [0 .. independences.Length - 1], y = independences) |> Chart.Plot |> fun x -> x.Show()
+[
+    Scatter(x = [|0.1 .. 0.1 .. 5.0|] , y = independences);
+    Scatter(x = [|0.1 .. 0.1 .. 5.0|] , y = Seq.replicate independences.Length (log 2.0) )
+]
+|> Chart.Plot 
+|> Chart.Show
