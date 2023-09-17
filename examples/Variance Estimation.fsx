@@ -24,7 +24,7 @@ let Px = uniform -Math.PI Math.PI
 let trueMean x = 
     if x < 0.0 then 2.0 * x
     else sin (2.0 * x)
-let noise x = 0.5 * cos(8.0 * x) |> abs
+let noise x = 0.75 * cos(2.0 * x) |> abs
 let P = 
     distribution {
         let! x = Px
@@ -35,37 +35,30 @@ let P =
     }
 
 //Sample
-let n = 5000
+let n = 20000
 let sample = 
     P
     |> Distribution.samples 
     |> Seq.take n 
     |> Seq.toArray
 
-//Define training protocol
-let train n sample learner =
-    let S = Distribution.empirical sample
-    learnDistribution S n learner
-    tailAverage learner
-    learnDistribution S n learner
-
 //Setting up Candidate Feature Maps
 let features sigma = 
     sample
     |> Array.map fst
     |> gaussianFeatureMap sigma
-    |> GaussianTools.cover 0.1f
-let featureMaps = Array.Parallel.map features [|0.1f .. 0.01f .. 0.3f|] 
+    |> GaussianTools.cover 0.2f
+let featureMaps = Array.Parallel.map features [|0.1f .. 0.01f .. 0.4f|] 
 
 //Online Learning -- Mean
 let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps
-do Array.Parallel.iter (train 50000 sample) learnersMean
+do Array.Parallel.iter (learnSequence sample) learnersMean
 let mean = Array.minBy averageLoss learnersMean
 
 //Online Learning -- Variance
 let errors = PerformanceMeasures.lossesBatch squareLoss sample mean
 let learnersVariance = Array.map (createSGDLearner positiveRegressionLoss) featureMaps
-do Array.Parallel.iter (train 50000 errors) learnersVariance
+do Array.Parallel.iter (learnSequence errors) learnersVariance
 let variance = Array.minBy averageLoss learnersVariance
 
 //Charting
@@ -95,8 +88,7 @@ let range = [|-float32 Math.PI .. 0.001f .. float32 Math.PI|]
         y = Array.map (fun x -> let x = toVector x in standardLink(mean.Predict x) - 3.0f * sqrt(positiveRegressionLink(variance.Predict x))) range,
         marker = Marker(color = "Red"),
         name = "Lower Bound"
-    );
-
+    )
 ]
 |> Chart.Plot
 |> Chart.Show
