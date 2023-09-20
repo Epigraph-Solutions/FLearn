@@ -49,7 +49,7 @@ learnSequence train learner
 
 let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner
 
-//The optimizing over the L1 Ball promotes sparsity, in that most of the optimal weights are close to zero. Here we demonstrate this
+//The optimizing over the L1 Ball promotes sparsity, in that most of the weights are close to zero. Here we demonstrate this
 learner.AverageWeights.CoerceZero(0.001)
 learner.AverageWeights |> Matrix.toSeqSkipZeros |> Seq.length
 learner.AverageWeights |> Matrix.iter (printfn "%A")
