@@ -39,7 +39,6 @@
 
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
-    <PackageReference Include="MathNet.Numerics.Providers.CUDA" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
