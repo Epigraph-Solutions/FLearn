@@ -84,11 +84,11 @@ module PerformanceMeasures =
             AUC : float32
         }
     let createConfusionCurve (testSet : ('instance * int) []) (predictor : IPredictor<'instance>) =
-        let scoredLabels = testSet |> Array.map (fun (x, y) -> let p = predictor.Predict x in y, p)
-        let sortedScoredLabels = scoredLabels |> Array.sortBy (fun (y, p) -> p.[0])
+        let scoredLabels = testSet |> Seq.map (fun (x, y) -> let p = predictor.Predict x in y, p)
+        let sortedScoredLabels = scoredLabels |> Seq.sortBy (fun (y, p) -> p.[0])
         let nNegatives, nPositives, n = 
             sortedScoredLabels
-            |> Array.fold (fun (neg, pos, n) (y,_) ->
+            |> Seq.fold (fun (neg, pos, n) (y,_) ->
                 match y with
                 | 1 -> neg + One, pos, n + One
                 | 0 -> neg, pos + One, n + One
@@ -100,12 +100,12 @@ module PerformanceMeasures =
                 FalsePositive = nNegatives
                 TrueNegative = Zero
                 FalseNegative = Zero
-                Bias = (snd sortedScoredLabels.[0]).[0]
+                Bias = (snd (Seq.head sortedScoredLabels)).[0]
             }
         
         let confusionList = 
             sortedScoredLabels 
-            |> Array.fold (fun cl (y, p) -> 
+            |> Seq.fold (fun cl (y, p) -> 
                 let C = List.head cl
                 let newC = 
                     match y with

@@ -1,1 +1,3 @@
-I should really do these, I promise from now on!
+2.0.3.3
+
+Fixed Confusion Curve to work with training sequences rather than training arrays.

@@ -3,10 +3,12 @@ Here we start with a simple example, showing how FLearn can be used to learn a c
 downloading the FLearn package from nuget, before opening the relevant libraries.
 *)
 #r "nuget: FLearn"
+#r "nuget: XPlot.Plotly"
 
 open System
 open FLearn
 open MathNet.Numerics.LinearAlgebra
+open XPlot.Plotly
 
 //Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
@@ -49,3 +51,12 @@ let learner = createSGDLearner loss features // This sets the learning algorithm
 learnSequence train learner // Now we learn the training sequence using our learner
 
 let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner // Finally, we check the performance on the test set.
+
+//Confusion and ROC curves
+
+let confusionCurve = PerformanceMeasures.createConfusionCurve (Seq.toArray test) learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
+let tp, tn, thresholds = Array.unzip3 confusionCurve.RocCurve // Extracts true positive and true negative rates from ROC curve as well as thresholds.
+
+Scatter(x = tp, y = tn, text = thresholds, hoverinfo="text")
+|> Chart.Plot
+|> Chart.Show
