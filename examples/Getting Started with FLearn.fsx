@@ -8,12 +8,12 @@ open System
 open FLearn
 open MathNet.Numerics.LinearAlgebra
 
-//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results
+//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Set the expected dimension of the input data and parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label.
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -41,10 +41,10 @@ let test =
     IO.File.ReadLines(testPath) 
     |> Seq.map parse
 
-//Logistic Regression - Here we define the loss function, features and learner
+//Logistic Regression - Here we define the loss function, features and learner.
 let loss = logLoss 2 // 2 for 2 classes, this is binary classification after all!
-let features = identityFeatureMap d // The "do nothing" feature map, for data that is ready to go without processing
-let learner = createSGDLearner loss features // This sets the learning algorithm up, SGD in this case
+let features = identityFeatureMap d // The "do nothing" feature map, for data that is ready to go without processing.
+let learner = createSGDLearner loss features // This sets the learning algorithm up, SGD in this case.
 
 learnSequence train learner // Now we learn the training sequence using our learner
 

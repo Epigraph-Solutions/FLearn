@@ -11,7 +11,7 @@ open FLearn
 open MathNet.Numerics.LinearAlgebra
 open XPlot.Plotly
 
-//Helpers - This helper function calculates the running average of an array, useful for checking FLearns online performance
+//Helpers - This helper function calculates the running average of an array, useful for checking FLearns online performance.
 let runningAverage (arr: float32 []) =
     let mutable sum = 0.0f
     let res = Array.zeroCreate<float32> arr.Length
@@ -20,11 +20,11 @@ let runningAverage (arr: float32 []) =
         res.[i] <- sum / float32 (i + 1)
     res
 
-//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results
+//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 
-//Set the expected dimension of the input data and parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label.
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -47,7 +47,7 @@ let train =
     IO.File.ReadLines(trainPath) 
     |> Seq.map parse
 
-//Online Logistic Regression - Once Again we setup our loss, feature map and learner
+//Online Logistic Regression - Once Again we setup our loss, feature map and learner.
 let loss = logLoss 2
 let features = identityFeatureMap d
 let learner = createSGDLearner loss features
@@ -56,19 +56,19 @@ let learner = createSGDLearner loss features
 let onlineRun = 
     train
     |> Seq.map (fun (x, y) (* The learner receives the pair (x,y) *)->
-        let prediction = predictOnline learner x // It first makes a prediction using x
-        let l = lossIncurred loss y prediction // It then measures accuracy of this prediction against the true y
-        learn (x, y) learner // It then learns from its mistake
-        l // Finally we output the loss
+        let prediction = predictOnline learner x // It first makes a prediction using x.
+        let l = lossIncurred loss y prediction // It then measures accuracy of this prediction against the true y.
+        learn (x, y) learner // It then learns from its mistake.
+        l // Finally we output the loss.
     )
     |> Seq.toArray
-    |> runningAverage // Here we calculate the running average of the performance
+    |> runningAverage // Here we calculate the running average of the performance.
 
-//Here we calculate the batch performance against the whole training set. Note that it is very close to the online performance of our learner
+//Here we calculate the batch performance against the whole training set. Note that it is very close to the online performance of our learner.
 let performance = PerformanceMeasures.lossBatch loss train learner
 let performanceOnline = onlineRun[onlineRun.Length - 1]
 
-//Finally, we plot our results, showing how the online performance improves with time, and approaches the batch performance
+//Finally, we plot our results, showing how the online performance improves with time, and approaches the batch performance.
 [
     Scatter(x = [0 .. onlineRun.Length - 1], y = onlineRun) ;
     Scatter(x = [0 .. onlineRun.Length - 1], y = Seq.replicate onlineRun.Length performance)

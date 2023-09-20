@@ -8,12 +8,12 @@ open System
 open FLearn
 open MathNet.Numerics.LinearAlgebra
 
-//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results
+//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Set the expected dimension of the input data and parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label.
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -42,14 +42,14 @@ let test =
 //Logistic Regression
 let loss = logLoss 2
 let features = identityFeatureMap d
-let projection = Projections.L1Ball 5.0f // Here we define our projection operator. This ensures the weights used by our learner stay in an L1 Ball of radius 5
+let projection = Projections.L1Ball 5.0f // Here we define our projection operator. This ensures the weights used by our learner stay in an L1 Ball of radius 5.
 let learner = createProjectedSGDLearner loss projection features 
 
 learnSequence train learner
 
 let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner
 
-//The optimizing over the L1 Ball promotes sparsity, in that most of the weights are close to zero. Here we demonstrate this
+//The optimizing over the L1 Ball promotes sparsity, in that most of the weights are close to zero. Here we demonstrate this.
 learner.AverageWeights.CoerceZero(0.001)
 learner.AverageWeights |> Matrix.toSeqSkipZeros |> Seq.length
 learner.AverageWeights |> Matrix.iter (printfn "%A")

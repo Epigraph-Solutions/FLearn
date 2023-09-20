@@ -24,12 +24,12 @@ let timeFunction f x =
     printfn "Elapsed time: %f seconds" (stopwatch.Elapsed.TotalSeconds)
     result
 
-//Data -- You will need to change this to point to a local version of the MNIST data set to replicate my results
+//Data -- You will need to change this to point to a local version of the MNIST data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\MNIST\"
 let trainPath = path + "MNIST train.txt"
 let testPath = path + "MNIST test.txt"
 
-//Set the expected dimension of the input data and parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label.
 let d = 784
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -87,7 +87,7 @@ that one can use to increase performance over vanilla linear logistic regression
 *)
 let randomFourierLearner =
     randomFourierFeatureMap 6.0f d 2000
-    |> createAdaGradLearner 0.01f loss // Using AdaGrad here not SGD because why not
+    |> createAdaGradLearner 0.01f loss // Using AdaGrad here not SGD because why not.
 
 timeFunction (hogWild train) randomFourierLearner
-let performanceRandomFourierLearner = PerformanceMeasures.lossBatch (zeroOneLoss k) test randomFourierLearner //Note the increase in performance
+let performanceRandomFourierLearner = PerformanceMeasures.lossBatch (zeroOneLoss k) test randomFourierLearner //Note the increase in performance.

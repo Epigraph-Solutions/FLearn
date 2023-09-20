@@ -25,7 +25,7 @@ let uniform lower upper =
 let toVector (x : float32) = DenseVector.raw [|x|]
 let toFloat (v : Vector<float32>) = v.[0]
 
-//Target Distribution, note the non uniformity of the error
+//Target Distribution, note the non uniformity of the error.
 let Px = uniform -Math.PI Math.PI
 let trueMean x = 
     if x < 0.0 then 2.0 * x
@@ -48,29 +48,29 @@ let sample =
     |> Seq.take n 
     |> Seq.toArray
 
-//Setting up Candidate Feature Maps
+//Setting up Candidate Feature Maps.
 let features sigma = 
     sample
     |> Array.map fst // Extract x from the sample
     |> gaussianFeatureMap sigma // Create a Gaussian Feature map, \phi(x) = (K(x_1, x), K(x_2, x), ... , K(x_n, x)) with K the Gaussian kernel
     |> GaussianTools.cover 0.2f // Rather than using all of the sample in our Gaussian feature map, we use a sparse representation. Magic :)
-let featureMaps = Array.Parallel.map features [|0.1f .. 0.01f .. 0.4f|] //Setup the Feature Maps
+let featureMaps = Array.Parallel.map features [|0.1f .. 0.01f .. 0.4f|] //Setup the Feature Maps.
 
-//Online Learning -- Mean
-let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps // Setup candidate learners for the conditional mean
-Array.Parallel.iter (learnSequence sample) learnersMean // Train Learners in Parallel
-let mean = Array.minBy averageLoss learnersMean // Chose the learner with best online performance
+//Online Learning -- Mean.
+let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps // Setup candidate learners for the conditional mean.
+Array.Parallel.iter (learnSequence sample) learnersMean // Train Learners in Parallel.
+let mean = Array.minBy averageLoss learnersMean // Chose the learner with best online performance.
 
-//Online Learning -- Variance
-let errors = PerformanceMeasures.lossesBatch squareLoss sample mean // Obtain losses from the mean predictor
-let learnersVariance = Array.map (createSGDLearner positiveRegressionLoss) featureMaps //Setup Candidate
-Array.Parallel.iter (learnSequence errors) learnersVariance // Train Learners in Parallel
-let variance = Array.minBy averageLoss learnersVariance // Chose the learner with best online performance
+//Online Learning -- Variance.
+let errors = PerformanceMeasures.lossesBatch squareLoss sample mean // Obtain losses from the mean predictor.
+let learnersVariance = Array.map (createSGDLearner positiveRegressionLoss) featureMaps //Setup Candidate.
+Array.Parallel.iter (learnSequence errors) learnersVariance // Train Learners in Parallel.
+let variance = Array.minBy averageLoss learnersVariance // Chose the learner with best online performance.
 
 //Charting
 let range = [|-float32 Math.PI .. 0.001f .. float32 Math.PI|]
 
-//Plots, notice the usage of a link function in the output of the variances predictions
+//Plots, notice the usage of a link function in the output of the variances predictions.
 [
     Scatter(
         x = Array.map (fst >> toFloat) sample, 

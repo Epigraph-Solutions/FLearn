@@ -1,5 +1,5 @@
 (**
-Here we demonstrate the use of the Sparse SGD
+Here we demonstrate the use of the Sparse SGD.
 *)
 
 #r "nuget: MathNet.Numerics.FSharp"
@@ -10,13 +10,13 @@ open System
 open FLearn
 open MathNet.Numerics.LinearAlgebra
 
-//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results
+//Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Set the expected dimension of the input data and parse SVM light format data to a vector and label
-let d = 1000000000 // Note the VERY high dimensionality
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label.
+let d = 1000000000 // Note the VERY high dimensionality.
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
     let label = 
@@ -49,4 +49,4 @@ let learner = SparseLearning.createSparseSGDNoAverageLearner loss features
 
 learnSequence train learner
 
-let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test learner // Note the performace is the same as for the dense case.
+let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test learner // Note the performance is the same as for the dense case.
