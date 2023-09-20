@@ -3,15 +3,18 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <EnableNETAnalyzers>True</EnableNETAnalyzers>
-    <AnalysisLevel>preview-recommended</AnalysisLevel>
-    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <APackageRPackageReleaseNotes></PackageReleaseNotes>REalLEASE_NOTES>M>>MD.DMD
+    <PackageProjectUrl>https://mlunhinged.visualstudio.com/FLearn</PackageProjectUrl>
+    <Authors>Brendan van Rooyen</Authors>
+    <Description>A Supervised Learning Library for F#</Description>
     <Version>2.0.3.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="RELEASE_NOTES.md" />
     <None Include="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

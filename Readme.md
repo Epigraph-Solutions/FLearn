@@ -1,4 +1,4 @@
-## FLearn, Definition
+## FLearn
 
 > 1. To learn through failure.
 > 2. A supervised learning library written in F# for F#.
