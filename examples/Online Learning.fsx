@@ -1,6 +1,6 @@
 ﻿(**
 Here we demonstrate FLearns usage in the online setting, 
-wherein data is learnt from and predictions are assessed "as they come", rather than in a big batch.
+wherein data is learned from and predictions are assessed "as they come", rather than in a big batch.
 *)
 
 #r "nuget: FLearn"
@@ -55,7 +55,7 @@ let learner = createSGDLearner loss features
 //Here we setup our online run
 let onlineRun = 
     train
-    |> Seq.map(fun (x, y) (*The learner recieves the pair (x,y) *)->
+    |> Seq.map (fun (x, y) (* The learner receives the pair (x,y) *)->
         let prediction = predictOnline learner x // It first makes a prediction using x
         let l = lossIncurred loss y prediction // It then measures accuracy of this prediction against the true y
         learn (x, y) learner // It then learns from its mistake
@@ -64,7 +64,7 @@ let onlineRun =
     |> Seq.toArray
     |> runningAverage // Here we calculate the running average of the performance
 
-//Here we calculate the batch perforamance against the whole traing set. Note that it is very close to the online performance of our learner
+//Here we calculate the batch performance against the whole training set. Note that it is very close to the online performance of our learner
 let performance = PerformanceMeasures.lossBatch loss train learner
 let performanceOnline = onlineRun[onlineRun.Length - 1]
 

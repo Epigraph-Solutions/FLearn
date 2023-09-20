@@ -16,7 +16,7 @@ open FSharp.Collections.ParallelSeq
 open FLearn
 open MathNet.Numerics.LinearAlgebra
 
-//This function will be used to asses train times
+//This function will be used to assess train times
 let timeFunction f x =
     let stopwatch = Stopwatch.StartNew()
     let result = f x
@@ -50,7 +50,7 @@ let test =
     IO.File.ReadAllLines(testPath) 
     |> Array.map parse
 
-//Multiclass Logistic Regression
+//Multi-class Logistic Regression
 let k = 10 // 10 classes
 let loss = logLoss k
 
@@ -64,7 +64,7 @@ let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test linea
 //First Order Features HOGWILD!
 
 (**
-While not in Base FLearn, as it requires paralell sequences, HOGWILD! is a simple technique to parallelize Online convex optimisation.
+While not in Base FLearn, as it requires parallel sequences, HOGWILD! is a simple technique to parallelize Online convex optimisation.
 No locking here! Just iterate over the train sequence in parallel....
 While it invalidates our online estimate of the batch loss, it does improve training time!
 *)
@@ -76,12 +76,12 @@ let linearLearnerHOGWILD =
 timeFunction (hogWild train) linearLearnerHOGWILD
 let performanceLinearLearnerHOGWILD = PerformanceMeasures.lossBatch (zeroOneLoss k) test linearLearnerHOGWILD
 
-//Random Foureier Features
+//Random Fourier Features
 
 MathNet.Numerics.Control.UseNativeMKL() // Using MKL for Speed
 
 (**
-Random Fourier Features work by providing a randomized, finite dimensional approximation to the gaussian feature map.
+Random Fourier Features work by providing a randomized, finite dimensional approximation to the Gaussian feature map.
 We wont go into the details here, suffice to say they are a powerful, non linear preprocessing trick
 that one can use to increase performance over vanilla linear logistic regression.
 *)

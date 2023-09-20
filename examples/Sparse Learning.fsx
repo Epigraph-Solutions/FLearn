@@ -1,5 +1,5 @@
 (**
-Here we demonstrate the use of the SparesSGD
+Here we demonstrate the use of the Sparse SGD
 *)
 
 #r "nuget: MathNet.Numerics.FSharp"
@@ -41,7 +41,7 @@ let test =
     IO.File.ReadLines(testPath) 
     |> Seq.map parse
 
-//Multiclass Logistic Regression---------------------------------------------------------------------------------------------
+//Logistic Regression
 let k = 2
 let loss = logLoss k
 let features = identityFeatureMap d

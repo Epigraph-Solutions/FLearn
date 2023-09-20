@@ -1,8 +1,8 @@
 ﻿#r "nuget: FLearn"
 
 (**
-Shameless self promotion incoming. Here we show how Flearn can learn classifiers from noisily labeled training sets,
-utilising techniques I had a hand in generalizing.
+Shameless self promotion incoming. Here we show how FLearn can learn classifiers from noisily labeled training sets,
+utilizing techniques I had a hand in generalizing.
 *)
 
 open System

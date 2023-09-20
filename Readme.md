@@ -7,7 +7,7 @@ Built on top of the [Math.Net Numerics](https://numerics.mathdotnet.com/) linear
 
 1. Construct predictive models, with statistical and worst-case guarantees, via the minimization of convex loss functions.
 2. Utilize feature maps such as those provided by random Fourier features and the Nystrom method.
-3. Make predictions and estimate their errors. Think error bars and gaussian processes.
+3. Make predictions and estimate their errors. Think error bars and Gaussian processes.
 4. Learn from noisily labeled data via corruption corrected loss functions.
 
 FLearn is both an "online" and a "batch" learning library, that is it can learn from data sequentially as it comes, or learn from a large training set of data in one go. Example usage of the package can be found [here](https://mlunhinged.visualstudio.com/_git/FLearn?path=/examples).

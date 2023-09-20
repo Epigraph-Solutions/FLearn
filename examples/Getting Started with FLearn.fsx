@@ -1,5 +1,5 @@
 ﻿(**
-Here we start with a simple example, showing how FLearn can be used to learn a classfier for the UCI Adult Census Data set. We start by 
+Here we start with a simple example, showing how FLearn can be used to learn a classifier for the UCI Adult Census Data set. We start by 
 downloading the FLearn package from nuget, before opening the relevant libraries.
 *)
 #r "nuget: FLearn"
