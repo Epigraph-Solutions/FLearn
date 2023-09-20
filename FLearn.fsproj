@@ -7,27 +7,27 @@
     <AnalysisLevel>preview-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.3.1</Version>
+    <Version>2.0.3.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="readme.md" />
+    <None Include="README.md" />
     <None Include="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-    <Compile Include="Domain Types.fs" />
-    <Compile Include="Utilities.fs" />
-    <Compile Include="Distributions.fs" />
-    <Compile Include="LinkFunctions.fs" />
-    <Compile Include="LossFunctions.fs" />
-    <Compile Include="LearningWithCorruption.fs" />
-    <Compile Include="PerformanceMeasures.fs" />
-    <Compile Include="CoversAndSubSamples.fs" />
-    <Compile Include="FeatureMaps.fs" />
-    <Compile Include="Learners.fs" />
-    <Compile Include="Projections.fs" />
-    <Compile Include="Sparse Learning.fs" />
+    <Compile Include="src\Domain Types.fs" />
+    <Compile Include="src\Utilities.fs" />
+    <Compile Include="src\Distributions.fs" />
+    <Compile Include="src\LinkFunctions.fs" />
+    <Compile Include="src\LossFunctions.fs" />
+    <Compile Include="src\LearningWithCorruption.fs" />
+    <Compile Include="src\PerformanceMeasures.fs" />
+    <Compile Include="src\CoversAndSubSamples.fs" />
+    <Compile Include="src\FeatureMaps.fs" />
+    <Compile Include="src\Learners.fs" />
+    <Compile Include="src\Projections.fs" />
+    <Compile Include="src\Sparse Learning.fs" />
     <None Include="examples\Getting Started with FLearn.fsx" />
     <None Include="examples\Online Learning.fsx" />
     <None Include="examples\Projections and the Lasso.fsx" />
@@ -35,11 +35,11 @@
     <None Include="examples\Learning with Corruption.fsx" />
     <None Include="examples\Multiclass Classification on MNIST.fsx" />
     <None Include="examples\Variance Estimation.fsx" />
-    <None Include="examples\Estimating Dependence.fsx" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics.FSharp" Version="5.0.0" />
+    <PackageReference Include="MathNet.Numerics.Providers.CUDA" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>

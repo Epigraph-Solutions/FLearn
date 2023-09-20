@@ -5,7 +5,7 @@ module SparseLearning =
     open MathNet.Numerics.LinearAlgebra
 
     [<StructuredFormatDisplay("count {Count}, loss {AverageLoss}")>]
-    type SparseSGDLearnerNoAverage<'instance, 'label> =  
+    type SparseSGDNoAverageLearner<'instance, 'label> =  
         {
             Features : IFeatureMap<'instance>
             LossFunction : LossFunction<'label>
@@ -57,7 +57,7 @@ module SparseLearning =
             member this.PredictOnline x = this.PredictOnline x
             member this.Learn example = this.Learn example
             member this.TailAverage() = this.TailAverage()
-    let createSparseSGDLearnerNoAverage loss (features : IFeatureMap<'instance>)  = 
+    let createSparseSGDNoAverageLearner loss (features : IFeatureMap<'instance>)  = 
             let d = features.Dimension
             {
                 Features = features

@@ -94,12 +94,12 @@ module FeatureMaps =
     let randomPolynomialMap k inputDimension nFeatures = 
         let Z = One / sqrt(float32 nFeatures)
         let W = 
-            let randomGaussianMatrix () = 
+            let randomMatrix () = 
                 DenseMatrix.init 
                     nFeatures 
                     inputDimension 
-                    (fun _ _ -> Sample.normal 0.0 1.0 Distribution.rnd |> float32)
-            Array.init k (fun _ -> randomGaussianMatrix ())
+                    (fun _ _ -> if Distribution.rnd.Next(2) = 0 then 1.0f else -1.0f)
+            Array.init k (fun _ -> randomMatrix ())
         {
             new IFeatureMap<Vector<float32>> with
                 member __.FeatureMap x =  

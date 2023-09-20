@@ -1,5 +1,9 @@
-﻿#r "nuget: FLearn"
-#r "nuget: FSharpPlus"
+﻿(**
+Here we demonstrate FLearns usage in the online setting, 
+wherein data is learnt from and predictions are assessed "as they come", rather than in a big batch.
+*)
+
+#r "nuget: FLearn"
 #r "nuget: XPlot.Plotly"
 
 open System
@@ -7,7 +11,7 @@ open FLearn
 open MathNet.Numerics.LinearAlgebra
 open XPlot.Plotly
 
-//Helpers
+//Helpers - This helper function calculates the running average of an array, useful for checking FLearns online performance
 let runningAverage (arr: float32 []) =
     let mutable sum = 0.0f
     let res = Array.zeroCreate<float32> arr.Length
@@ -20,7 +24,7 @@ let runningAverage (arr: float32 []) =
 let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 
-//Parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -39,33 +43,32 @@ let parse (s : string) =
         featureVector.[d - 1] <- 1.0f
 
     (featureVector, label)
-let data = 
+let train = 
     IO.File.ReadLines(trainPath) 
     |> Seq.map parse
-let train =
-    data
-    |> Distribution.empirical
-    |> Distribution.samples
-    |> Seq.take 50000
 
-//Online Logistic Regression
+//Online Logistic Regression - Once Again we setup our loss, feature map and learner
 let loss = logLoss 2
 let features = identityFeatureMap d
 let learner = createSGDLearner loss features
 
+//Here we setup our online run
 let onlineRun = 
     train
-    |> Seq.map(fun (x, y) ->
-        let prediction = predictOnline learner x
-        learn (x, y) learner
-        lossIncurred loss y prediction
+    |> Seq.map(fun (x, y) (*The learner recieves the pair (x,y) *)->
+        let prediction = predictOnline learner x // It first makes a prediction using x
+        let l = lossIncurred loss y prediction // It then measures accuracy of this prediction against the true y
+        learn (x, y) learner // It then learns from its mistake
+        l // Finally we output the loss
     )
     |> Seq.toArray
-    |> runningAverage
+    |> runningAverage // Here we calculate the running average of the performance
 
+//Here we calculate the batch perforamance against the whole traing set. Note that it is very close to the online performance of our learner
 let performance = PerformanceMeasures.lossBatch loss train learner
 let performanceOnline = onlineRun[onlineRun.Length - 1]
 
+//Finally, we plot our results, showing how the online performance improves with time, and approaches the batch performance
 [
     Scatter(x = [0 .. onlineRun.Length - 1], y = onlineRun) ;
     Scatter(x = [0 .. onlineRun.Length - 1], y = Seq.replicate onlineRun.Length performance)

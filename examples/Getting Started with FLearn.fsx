@@ -1,4 +1,8 @@
-﻿#r "nuget: FLearn"
+﻿(**
+Here we start with a simple example, showing how FLearn can be used to learn a classfier for the UCI Adult Census Data set. We start by 
+downloading the FLearn package from nuget, before opening the relevant libraries.
+*)
+#r "nuget: FLearn"
 
 open System
 open FLearn
@@ -9,7 +13,7 @@ let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -28,6 +32,8 @@ let parse (s : string) =
         featureVector.[d - 1] <- 1.0f
 
     (featureVector, label)
+
+//Define the train and test sets, noting that data is NOT read into main memory. This is a feature of FLearn.
 let train = 
     IO.File.ReadLines(trainPath) 
     |> Seq.map parse
@@ -35,11 +41,11 @@ let test =
     IO.File.ReadLines(testPath) 
     |> Seq.map parse
 
-//Logistic Regression
-let loss = logLoss 2
-let features = identityFeatureMap d
-let learner = createSGDLearner loss features
+//Logistic Regression - Here we define the loss function, features and learner
+let loss = logLoss 2 // 2 for 2 classes, this is binary classification after all!
+let features = identityFeatureMap d // The "do nothing" feature map, for data that is ready to go without processing
+let learner = createSGDLearner loss features // This sets the learning algorithm up, SGD in this case
 
-learnSequence train learner
+learnSequence train learner // Now we learn the training sequence using our learner
 
-let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner
+let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner // Finally, we check the performance on the test set.

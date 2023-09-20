@@ -1,4 +1,8 @@
-﻿#r "nuget: FLearn"
+﻿(**
+Here we show how the ProjectedSGDLearner type can be used to perform a L1 regularized logistic regression.
+*)
+
+#r "nuget: FLearn"
 
 open System
 open FLearn
@@ -9,7 +13,7 @@ let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -35,16 +39,17 @@ let test =
     IO.File.ReadAllLines(testPath) 
     |> Array.map parse
 
-//Logistic Regression------------------------------------------------------------------------------------------------------------
+//Logistic Regression
 let loss = logLoss 2
 let features = identityFeatureMap d
-let projection = Projections.L1Ball 5.0f
+let projection = Projections.L1Ball 5.0f // Here we define our projection operator. This ensures the weights used by our learner stay in an L1 Ball of radius 5
 let learner = createProjectedSGDLearner loss projection features 
 
 learnSequence train learner
 
 let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner
 
-learner.AverageWeights.CoerceZero(0.01)
+//The optimizing over the L1 Ball promotes sparsity, in that most of the optimal weights are close to zero. Here we demonstrate this
+learner.AverageWeights.CoerceZero(0.001)
 learner.AverageWeights |> Matrix.toSeqSkipZeros |> Seq.length
 learner.AverageWeights |> Matrix.iter (printfn "%A")

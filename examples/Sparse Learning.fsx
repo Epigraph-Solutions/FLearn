@@ -1,3 +1,7 @@
+(**
+Here we demonstrate the use of the SparesSGD
+*)
+
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win-x64"
 #r "nuget: FLearn"
@@ -11,8 +15,8 @@ let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Parse SVM light format data to a vector and label
-let d = 1000000000
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label
+let d = 1000000000 // Note the VERY high dimensionality
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
     let label = 
@@ -20,7 +24,7 @@ let parse (s : string) =
         | "-1" -> 0
         | "+1" -> 1
         | _ -> failwith "Invalid Label"
-    let featureVector = SparseVector.zero d
+    let featureVector = SparseVector.zero d // Note we are using a SPARSE vector for our features.
 
     for s in blocks.[1 ..] do
         let stuff = s.Split(':')
@@ -40,12 +44,9 @@ let test =
 //Multiclass Logistic Regression---------------------------------------------------------------------------------------------
 let k = 2
 let loss = logLoss k
+let features = identityFeatureMap d
+let learner = SparseLearning.createSparseSGDNoAverageLearner loss features
 
-//First Order Features
-let linearLearner = 
-    identityFeatureMap d
-    |> SparseLearning.createSparseSGDLearnerNoAverage loss
+learnSequence train learner
 
-learnSequence train linearLearner
-
-let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test linearLearner
+let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test learner // Note the performace is the same as for the dense case.

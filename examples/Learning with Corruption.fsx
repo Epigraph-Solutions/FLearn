@@ -1,5 +1,10 @@
 ﻿#r "nuget: FLearn"
 
+(**
+Shameless self promotion incoming. Here we show how Flearn can learn classifiers from noisily labeled training sets,
+utilising techniques I had a hand in generalizing.
+*)
+
 open System
 open FLearn
 open FLearn.LearningWithCorruption
@@ -10,7 +15,7 @@ let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
 let trainPath = path + "adult.txt"
 let testPath = path + "adult test.txt"
 
-//Parse SVM light format data to a vector and label
+//Set the expected dimension of the input data and parse SVM light format data to a vector and label
 let d = 124
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -36,7 +41,7 @@ let test =
     IO.File.ReadAllLines(testPath) 
     |> Array.map parse
 
-//Corrupted Training Data
+//Corrupted Training Data - Here we define the noise rates on the two classes
 let sigmaNegative = 0.1f
 let sigmaPositive = 0.4f
 let T = 
@@ -45,26 +50,29 @@ let T =
         [sigmaNegative ; 1.0f - sigmaPositive]
     ]
     |> matrix   
+
+//This Matrix is used for reconstructing the loss on the uncorrupted data from the loss on the corrupted data
 let R = Matrix.inverse T
 
+//This defines the conditional distribution of noisy labels given clean labels
 let noise label : Distribution<CorruptedLabel> =
     distribution {
         match label with
         | 0 -> 
-            let! z = Distribution.coinFlip sigmaNegative
-            if z then return Corrupted(1,R)
+            let! flipped = Distribution.coinFlip sigmaNegative // sigmaNegative chance of Flipping a label 0 -> 1
+            if flipped then return Corrupted(1,R) // Note we return the noisy label AND the reconstruction that tells use how it relates to the clean label
             else return Corrupted(0, R)
         | _ -> 
-            let! z = Distribution.coinFlip sigmaPositive
-            if z then return Corrupted(0,R)
+            let! flipped = Distribution.coinFlip sigmaPositive // sigmaPositive chance of Flipping a label 1 -> 0
+            if flipped then return Corrupted(0,R)
             else return Corrupted(1, R)
     }
-let corrupt y = Distribution.sample <| noise y
-let corruptedTrain = train |> Array.map (fun (x, y) -> (x, corrupt y))
-let cleanTest = test |> Array.map (fun (x,y) -> x, Clean y)
+let corrupt y = Distribution.sample <| noise y // This corrupts a clean label
+let corruptedTrain = train |> Array.map (fun (x, y) -> (x, corrupt y)) // This corrupts the training set
+let cleanTest = test |> Array.map (fun (x,y) -> x, Clean y) // This make sure we know the testing set is uncorrupted.
 
 //Corrupted Logistic Regression
-let loss = logLossCC 2
+let loss = logLossCC 2 // Note we now use the corruption corrected loss
 let features = identityFeatureMap d
 let learner = createSGDLearner loss features
 

@@ -46,7 +46,7 @@ module internal Utilities =
                 let v = x :?> DenseVector in v.Values
             with
             | _ -> Vector.toArray x
-            
+
         let sparseOuterProduct(u : Vector<float32>, v : Vector<float32>) = 
             let rows = u.Count
             let cols = v.Count
@@ -64,20 +64,22 @@ module internal Utilities =
 
         let rnd = System.Random()
 
+        let inline denseMatrixAsValues (M : Matrix<float32>) = let M = M :?> DenseMatrix in M.Values
         let inline normSquared (M : Matrix<float32>) = 
             let sum = ref Zero
             for i in 0 .. M.RowCount - 1 do
                 for j in 0 .. M.ColumnCount - 1 do
-                    let x = M.[i, j]
+                    let x = M[i,j]
                     sum.Value <- sum.Value + x * x
             sum.Value
-        let inline denseMatrixAsValues (M : Matrix<float32>) = let M = M :?> DenseMatrix in M.Values
-        let inline gradientUpdate (W : Weights, gradient, learningRate : float32) =
+        let inline gradientUpdate (W : Weights, gradient : Matrix<float32>, learningRate : float32) =
             let valuesW = denseMatrixAsValues W
             let valuesGradient = denseMatrixAsValues gradient
             LinearAlgebraControl.Provider.AddVectorToScaledVector(valuesW, -One / sqrt learningRate, valuesGradient, valuesW)
         let inline adaGradUpdate (W : Weights, gradient : Matrix<float32>, learningRate : Weights, gSquared) =
-            W |> Matrix.mapiInPlace (fun i j w -> w - One/sqrt(gSquared + learningRate.[i,j]) * gradient.[i,j])
+            for i in 0 .. W.RowCount - 1 do
+                for j in 0 .. W.ColumnCount - 1 do
+                    W[i,j] <- W[i,j] - gradient.[i,j] / sqrt(gSquared + learningRate.[i,j])
         let inline runningAverage (count : float32, v : Matrix<float32>, u : Matrix<float32>) =            
             for i in 0 .. v.RowCount - 1 do
                 for j in 0 .. v.ColumnCount - 1 do
