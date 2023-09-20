@@ -64,7 +64,7 @@ let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test linea
 //First Order Features HOGWILD!
 
 (**
-While not in Base FLearn, as it requires parallel sequences, HOGWILD! is a simple technique to parallelize Online convex optimisation.
+While not in Base FLearn, as it requires parallel sequences, HOGWILD! is a simple technique to parallelize Online convex optimization.
 No locking here! Just iterate over the train sequence in parallel....
 While it invalidates our online estimate of the batch loss, it does improve training time!
 *)
