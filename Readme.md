@@ -1,7 +1,7 @@
 ## FLearn, Definition
 
-> 1. To learn through failure. I flearnt how to ski by sliding face first down a mountain.
-> 2. A machine learning library written in F# for F#. Woah, FLearn learned that pattern quickly!
+> 1. To learn through failure.
+> 2. A machine learning library written in F# for F#.
 
 Built on top of the [Math.Net Numerics](https://numerics.mathdotnet.com/) linear algebra library, FLearn offers an extensible, scalable, and interactive take on machine learning. Utilizing tools from online convex optimization, FLearn provides a framework for specifying and optimizing various predictive models. Straight out of the box you can:
 
