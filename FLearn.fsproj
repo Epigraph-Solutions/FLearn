@@ -5,7 +5,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>RELEASE_NOTES.md</PackageReleaseNotes>
     <PackageProjectUrl>https://mlunhinged.visualstudio.com/FLearn</PackageProjectUrl>
     <Authors>Brendan van Rooyen</Authors>
     <Description>A Supervised Learning Library for F#</Description>
@@ -14,7 +13,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\"/>
-    <None Include="RELEASE_NOTES.md" Pack="true" PackagePath="\"/>
+    <None Include="RELEASE_NOTES.md"/>
     <None Include="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
