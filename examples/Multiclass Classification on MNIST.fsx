@@ -29,7 +29,7 @@ let path = @"C:\Users\User\OneDrive\Data\MNIST\"
 let trainPath = path + "MNIST train.txt"
 let testPath = path + "MNIST test.txt"
 
-//Set the expected dimension of the input data and parse SVM light format data to a vector and label.
+//Set the expected dimension of the input data and parse lib SVM format data to a vector and label.
 let d = 784
 let parse (s : string) = 
     let blocks = s.TrimEnd(' ').Split(' ')
