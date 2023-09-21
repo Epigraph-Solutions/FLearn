@@ -32,7 +32,7 @@ module LossFunctions =
                             else exp(prediction.[i]) / Z
                         )
                 loss, Dloss
-            }
+        }
     let squareLoss : LossFunction<float32> = 
         {
             Dimension = 1
