@@ -8,7 +8,7 @@ train time using HOGWILD! Finally we show how you can get better performance usi
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win"
 #r "nuget: FSharp.Collections.ParallelSeq"
-#r "nuget: FLearn"
+#r @"C:\Users\User\OneDrive\Code\FLearn\bin\Release\net7.0\FLearn.dll"
 
 open System
 open System.Diagnostics
@@ -23,6 +23,18 @@ let timeFunction f x =
     stopwatch.Stop()
     printfn "Elapsed time: %f seconds" (stopwatch.Elapsed.TotalSeconds)
     result
+
+let rnd = new Random()
+
+let sampleWithoutReplacement (n: int) (arr: 'a array)  =
+    let mutable indices = List.init (Array.length arr) id
+    let mutable result = []
+    for _ in 1 .. n do
+        let idx = rnd.Next(List.length indices)
+        let chosen = List.item idx indices
+        indices <- List.filter ((<>) chosen) indices
+        result <- arr.[chosen] :: result
+    result |> List.toArray
 
 //Data -- You will need to change this to point to a local version of the MNIST data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\MNIST\"
@@ -59,7 +71,7 @@ let linearLearner =
     identityFeatureMap d
     |> createSGDLearner loss
 timeFunction (learnSequence train) linearLearner
-let performanceLinear = PerformanceMeasures.lossBatch (zeroOneLoss k) test linearLearner
+let performanceLinear = PerformanceMeasures.loss01 test linearLearner
 
 //First Order Features HOGWILD!
 
@@ -74,7 +86,7 @@ let linearLearnerHOGWILD =
     identityFeatureMap d
     |> createSGDLearner loss
 timeFunction (hogWild train) linearLearnerHOGWILD
-let performanceLinearLearnerHOGWILD = PerformanceMeasures.lossBatch (zeroOneLoss k) test linearLearnerHOGWILD
+let performanceLinearLearnerHOGWILD = PerformanceMeasures.loss01 test linearLearnerHOGWILD
 
 //Random Fourier Features
 
@@ -86,8 +98,13 @@ We wont go into the details here, suffice to say they are a powerful, non linear
 that one can use to increase performance over vanilla linear logistic regression.
 *)
 let randomFourierLearner =
-    randomFourierFeatureMap 6.0f d 2000
-    |> createAdaGradLearner 0.01f loss // Using AdaGrad here not SGD because why not.
+    train
+    |> Array.map fst
+    |> Covers.gaussianKernelCoverParallel 1000 0.1f 6.0f
+    |> nystromFeatureMap 2.0f 6.0f
+    |> createAdaGradLearner 1.0f loss
+
+randomFourierLearner.Dimension
 
 timeFunction (hogWild train) randomFourierLearner
-let performanceRandomFourierLearner = PerformanceMeasures.lossBatch (zeroOneLoss k) test randomFourierLearner //Note the increase in performance.
+let performanceRandomFourierLearner = PerformanceMeasures.loss01 test randomFourierLearner //Note the increase in performance

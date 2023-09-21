@@ -7,7 +7,10 @@ One issue with doing regression on errors, is that errors are always positive! W
 estimation.
 *)
 
-#r "nuget: FLearn"
+#r "nuget: MathNet.Numerics"
+#r "nuget: MathNet.Numerics.FSharp"
+#r "nuget: MathNet.Numerics.MKL.Win"
+#r @"C:\Users\User\OneDrive\Code\FLearn\bin\Release\net7.0\FLearn.dll"
 #r "nuget: XPlot.Plotly"
 
 open System
@@ -15,6 +18,8 @@ open FLearn
 open XPlot.Plotly
 open MathNet.Numerics.LinearAlgebra
 open MathNet.Numerics.Distributions
+
+MathNet.Numerics.Control.UseNativeMKL()
 
 //Helpers -- Just some distributions and conversions between vectors and floats.
 let rnd = Distribution.rnd
@@ -52,8 +57,8 @@ let sample =
 let features sigma = 
     sample
     |> Array.map fst // Extract x from the sample
-    |> gaussianFeatureMap sigma // Create a Gaussian Feature map, \phi(x) = (K(x_1, x), K(x_2, x), ... , K(x_n, x)) with K the Gaussian kernel
-    |> GaussianTools.cover 0.2f // Rather than using all of the sample in our Gaussian feature map, we use a sparse representation. Magic :)
+    |> Covers.gaussianKernelCover 0.1f sigma
+    |> nystromFeatureMap sigma
 let featureMaps = Array.Parallel.map features [|0.1f .. 0.01f .. 0.4f|] //Setup the Feature Maps.
 
 //Online Learning -- Mean.

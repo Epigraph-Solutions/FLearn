@@ -12,3 +12,6 @@ module LinkFunctions =
         let d = prediction.Count
         let Z = prediction |> Vector.fold (fun sum v -> sum + exp(v)) One
         DenseVector.init (d + 1) (fun i -> if i < d  then exp(prediction.[i]) / Z else One / Z)
+    let classificationLink (prediction : Prediction) = 
+        let p = logisticLink prediction
+        Vector.maxIndex p

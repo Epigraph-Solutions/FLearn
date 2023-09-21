@@ -25,11 +25,12 @@
     <Compile Include="src\LossFunctions.fs" />
     <Compile Include="src\LearningWithCorruption.fs" />
     <Compile Include="src\PerformanceMeasures.fs" />
-    <Compile Include="src\CoversAndSubSamples.fs" />
+    <Compile Include="src\Covers.fs" />
     <Compile Include="src\FeatureMaps.fs" />
     <Compile Include="src\Learners.fs" />
     <Compile Include="src\Projections.fs" />
     <Compile Include="src\Sparse Learning.fs" />
+    <Compile Include="src\KernelDensityEstimation.fs" />
     <None Include="examples\Getting Started with FLearn.fsx" />
     <None Include="examples\Online Learning.fsx" />
     <None Include="examples\Projections and the Lasso.fsx" />

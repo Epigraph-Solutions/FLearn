@@ -16,6 +16,15 @@ module internal Utilities =
 
     //Split Map
     let (|->) x (f, g) = f x, g x
+    
+    let memoize (f: 'T -> 'U) =
+        let dict = new System.Collections.Concurrent.ConcurrentDictionary<_,_>(HashIdentity.Structural)
+        fun x -> 
+            if dict.ContainsKey(x) then dict.[x] 
+            else
+                let result = f x 
+                dict.TryAdd(x, result) |> ignore
+                result
 
     module Array = 
         let inline foldi f (initialState : 'state) (a : 'a []) = 

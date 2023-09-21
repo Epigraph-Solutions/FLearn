@@ -3,7 +3,6 @@
 [<AutoOpenAttribute>]
 module FeatureMaps = 
     open FLearn.Utilities
-    open FLearn.CoversAndSubSamples
     open MathNet.Numerics.LinearAlgebra
     open MathNet.Numerics.Distributions
 
@@ -125,124 +124,33 @@ module FeatureMaps =
                     |>! Vector.mapiInPlace (fun i x -> normalization * cos(x + offSets.[i]))
                 member __.Dimension = numberOfFeatures
         }
-
-    let internal extractSample (X : Matrix<float32>) (weightedSample : WeightedSample<int>) = 
-            let instances = weightedSample.Instances |> Seq.map (fun i -> X.Row(i) )
-            weightedSample.Weights, instances
-
-    type GaussianFeatureMap (sigma : float32, instances : seq<Vector<float32>>) = 
-        let instanceMatrix = DenseMatrix.ofRowSeq instances
-        let norms2 = instances |> Seq.map (fun v -> v * v) |> Seq.toArray
+    
+    let nystromFeatureMap (sigma : float32) (examples : Vector<float32> seq) =
+        let d = Seq.length examples
+        let instanceMatrix = DenseMatrix.ofRowSeq examples
+        let norms2 = examples |> Seq.map (fun v -> v * v) |> Seq.toArray
         let g sigma x = exp( -x / (Two * pown sigma 2))
 
-        member this.Dimension = instanceMatrix.RowCount
-        member this.Instances = instanceMatrix |> Matrix.toRowSeq
-
-        static member Collect(herds: seq<GaussianFeatureMap>) = 
-            let instances = 
-                herds
-                |> Seq.collect (fun h -> h.Instances)
-
-            let sigma = Seq.head herds |> fun x -> x.Sigma
-            GaussianFeatureMap(sigma, instances)
-
-        member this.Sigma = sigma
-
-        member this.FeatureMap (x' : Vector<float32>) =
-            let norm2x = x' * x'
-            instanceMatrix * x'
-            |>! Vector.mapiInPlace(fun i ip_rep_x ->
-                g sigma (norms2.[i] + norm2x - Two * ip_rep_x) 
-            ) 
-
-        interface IFeatureMap<Vector<float32>> with
-            member this.FeatureMap (x : Vector<float32>) = this.FeatureMap x
-            member this.Dimension = this.Dimension
-
-        member this.KernelMatrix() = 
+        let K = 
             instanceMatrix.TransposeAndMultiply(instanceMatrix)
             |>! Matrix.mapiInPlace (fun i j ip -> 
                 g sigma (norms2.[i] + norms2.[j] - Two * ip)  
             )
+        let svd = K.Svd()
+        let U, S, VT = svd.U, svd.S, svd.VT
+        let D = S |> Vector.map (fun s -> One / sqrt(s)) |> DenseMatrix.ofDiag
+        let inverseK = U * D * VT
+
+        {
+            new IFeatureMap<Vector<float32>> with
+                member this.Dimension = d
+                member this.FeatureMap x = 
+                    let norm2x = x * x
+                    let M = instanceMatrix * x
+                    M
+                    |> Vector.mapiInPlace(fun i ip_rep_x ->
+                        g sigma (norms2.[i] + norm2x - Two * ip_rep_x) 
+                    )
+                    inverseK * M
+        }
         
-        member this.NormSquared (weights : Vector<float32>) = 
-            let kernelMatrix = this.KernelMatrix()
-            (weights * kernelMatrix * weights)
-
-        member this.Normalize(weights : Vector<float32>) = 
-            let norm = this.NormSquared(weights) |> sqrt
-            weights |> Vector.mapInPlace (fun x -> x / norm)
-
-        member this.SubSample(numberOfSamples, weights : Vector<float32>) : Vector<float32> * GaussianFeatureMap =
-            let totalWeight = weights.L1Norm() |> float32
-            let indices = 
-                let w = weights |> Vector.asArray |> Array.map abs 
-                Array.init numberOfSamples (fun _ -> Distribution.sampleCategorical w)
-            let newX = indices |> Seq.map (fun i -> instanceMatrix.Row(i))
-            let newWeights = 
-                indices 
-                |> Array.map (fun i -> if weights.[i] > Zero then totalWeight / float32 numberOfSamples else -totalWeight / float32 numberOfSamples ) 
-                |> Vector.asVector
-            newWeights, GaussianFeatureMap(sigma, newX) 
-        
-        member this.Cover(error) : GaussianFeatureMap =  
-            let distanceSquared(i, j) = 
-                let distance = norms2.[i] + norms2.[j] - Two * instanceMatrix.Row(i) * instanceMatrix.Row(j)
-                Two - g sigma distance 
-                     
-            let n = this.Dimension
-            let initialHerd : WeightedSample<int> = 
-                {Weights = [||] ; Instances = [|0 ..  n - 1|] }
-            let error = pown error 2
-
-            initialHerd
-            |> FarthestFirstCover distanceSquared error n 
-            |> Seq.map (fun i ->
-                instanceMatrix.Row(i)
-            )
-            |> fun x -> GaussianFeatureMap(this.Sigma, x)
-
-        member this.ClusteredSubSample(error, numberOfPartitions, maximumSize, weights : Vector<float32>) : Vector<float32> * GaussianFeatureMap =                                                         
-            let distanceSquared(i, j) = 
-                let distance = norms2.[i] + norms2.[j] - Two * instanceMatrix.Row(i) * instanceMatrix.Row(j)
-                let weightSimilariy = let s = weights.[i] * weights.[j] in if s > Zero then One else -One
-                Two - weightSimilariy * g sigma distance
-       
-            let initialHerd : WeightedSample<int> = 
-                {Weights = weights |> Vector.asArray ; Instances = [|0 .. weights.Count - 1|]}
-            let error = pown error 2
-
-            initialHerd
-            |> ClusteredSubsamplingParallel distanceSquared error numberOfPartitions maximumSize
-            |> (fun h ->
-                let newWeights, newX = extractSample instanceMatrix h
-                Vector.asVector newWeights, GaussianFeatureMap(sigma, newX)
-            )
-    let gaussianFeatureMap sigma instances = GaussianFeatureMap(sigma, instances)
-    
-    module GaussianTools = 
-        ///Assigns equal weights to each x_i in the feature map.
-        let equalWeights (h : GaussianFeatureMap) = 
-            let n = h.Dimension
-            DenseVector.create n (1.0f / float32 n), h
-
-        let collectGaussianFeatureMaps (herds : seq<GaussianFeatureMap>) = GaussianFeatureMap.Collect herds
-
-        let subSample numberOfSamples (weights, h : GaussianFeatureMap) = h.SubSample (numberOfSamples, weights)
-        let clusteredSubSample (error, numberOfPartitions, maximumSize) (weights, h : GaussianFeatureMap) = h.ClusteredSubSample(error, numberOfPartitions, maximumSize, weights)
-        let cover error (h : GaussianFeatureMap) = h.Cover(error)
-
-        let projection (f2 : GaussianFeatureMap) (w : Vector<float32>, f1 : GaussianFeatureMap)  =
-            if f1.Sigma = f2.Sigma then
-                let K = f2.KernelMatrix()
-                let Z = 
-                    f2.Instances
-                    |> Seq.map (fun x -> w * f1.FeatureMap(x) )
-                    |> DenseVector.ofSeq
-                K.SolveIterative(Z,MathNet.Numerics.LinearAlgebra.Single.Solvers.BiCgStab())
-            else
-                failwith "Sigma must be the same for both f1 and f2."
-        let reduce error (w , f) =
-            let c = cover error f
-            let w = projection c (w ,f)
-            w, c

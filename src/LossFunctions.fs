@@ -7,15 +7,6 @@ module LossFunctions =
     open MathNet.Numerics.LinearAlgebra
    
     let lossIncurred (loss : LossFunction<'label>) y prediction = loss.Loss y prediction |> fst
-    let zeroOneLoss numberOfClasses : LossFunction<int> = 
-        {
-            Dimension = numberOfClasses - 1
-            Loss = fun y prediction ->
-                let p = logisticLink prediction
-                let predY = Vector.maxIndex p
-                if y = predY then Zero, DenseVector.zero (numberOfClasses - 1)
-                else One, DenseVector.zero (numberOfClasses - 1)
-        }
     let logLoss numberOfClasses : LossFunction<int> =
         let d =  numberOfClasses - 1
         {
