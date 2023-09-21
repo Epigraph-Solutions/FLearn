@@ -137,7 +137,7 @@ module FeatureMaps =
         let svd = K.Svd()
         let U, S, VT = svd.U, svd.S, svd.VT
         let D = S |> Vector.map (fun s -> One / sqrt (s)) |> DenseMatrix.ofDiag
-        let inverseK = U * D * VT
+        let Z = U * D * VT
 
         { new IFeatureMap<Vector<float32>> with
             member this.Dimension = d
@@ -149,4 +149,4 @@ module FeatureMaps =
                 M
                 |> Vector.mapiInPlace (fun i ip_rep_x -> g sigma (norms2.[i] + norm2x - Two * ip_rep_x))
 
-                inverseK * M }
+                Z * M }
