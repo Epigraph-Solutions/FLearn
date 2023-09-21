@@ -7,10 +7,8 @@ module Learners =
 
     let predict (predictor : IPredictor<'instance>) (x : 'instance)  = predictor.Predict x
     let predictOnline (learner : ILearner<'instance, 'label>) (x : 'instance)  = learner.PredictOnline x
-    let inline learn (example : _) (learner : ILearner<'instance, 'label>) = learner.Learn example
-    let inline learnSequence examples learner = 
-        for example in examples do
-            learn example learner
+    let learn (example : _) (learner : ILearner<'instance, 'label>) = learner.Learn example
+    let learnSequence examples (learner : ILearner<'instance, 'label>)  = Seq.iter (fun s -> learn s learner) examples
     let learnSequenceVerbosely examples (learner : ILearner<'instance, 'label>) = 
         let examples = 
             examples
@@ -19,13 +17,13 @@ module Learners =
                 z
             )
         learnSequence examples learner
-    let learnDistribution D numberOfSamples learner = 
+    let learnDistribution D numberOfSamples (learner : ILearner<'instance, 'label>)  = 
         let examples = 
             D
             |> Distribution.samples
             |> Seq.take numberOfSamples
         learnSequence examples learner
-    let learnDistributionVerbosely D numberOfSamples learner = 
+    let learnDistributionVerbosely D numberOfSamples (learner : ILearner<'instance, 'label>)  = 
         let examples = 
             D
             |> Distribution.samples
