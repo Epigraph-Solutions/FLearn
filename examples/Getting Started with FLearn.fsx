@@ -53,8 +53,7 @@ learnSequence train learner // Now we learn the training sequence using our lear
 let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner // Finally, we check the performance on the test set.
 
 //Confusion and ROC curves
-
-let confusionCurve = PerformanceMeasures.createConfusionCurve (Seq.toArray test) learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
+let confusionCurve = PerformanceMeasures.createConfusionCurve test learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
 let tp, tn, thresholds = Array.unzip3 confusionCurve.RocCurve // Extracts true positive and true negative rates from ROC curve as well as thresholds.
 
 Scatter(x = tp, y = tn, text = thresholds, hoverinfo="text")

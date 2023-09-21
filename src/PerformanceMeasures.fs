@@ -83,7 +83,7 @@ module PerformanceMeasures =
             RocCurve : (float32 * float32 * float32) []
             AUC : float32
         }
-    let createConfusionCurve (testSet : ('instance * int) []) (predictor : IPredictor<'instance>) =
+    let createConfusionCurve (testSet : ('instance * int) seq) (predictor : IPredictor<'instance>) =
         let scoredLabels = testSet |> Seq.map (fun (x, y) -> let p = predictor.Predict x in y, p)
         let sortedScoredLabels = scoredLabels |> Seq.sortBy (fun (y, p) -> p.[0])
         let nNegatives, nPositives, n = 
