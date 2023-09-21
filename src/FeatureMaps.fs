@@ -227,9 +227,8 @@ module FeatureMaps =
             DenseVector.create n (1.0f / float32 n), h
 
         let collectGaussianFeatureMaps (herds : seq<GaussianFeatureMap>) = GaussianFeatureMap.Collect herds
-        let subSample numberOfSamples (weights, h : GaussianFeatureMap) = h.SubSample (numberOfSamples, weights)
 
-        ///Performs clustered sub sampling as in "An Average Classification Algorithm" Section 7
+        let subSample numberOfSamples (weights, h : GaussianFeatureMap) = h.SubSample (numberOfSamples, weights)
         let clusteredSubSample (error, numberOfPartitions, maximumSize) (weights, h : GaussianFeatureMap) = h.ClusteredSubSample(error, numberOfPartitions, maximumSize, weights)
         let cover error (h : GaussianFeatureMap) = h.Cover(error)
 
