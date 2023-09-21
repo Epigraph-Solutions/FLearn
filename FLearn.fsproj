@@ -33,7 +33,6 @@
     <None Include="examples\Getting Started with FLearn.fsx" />
     <None Include="examples\Online Learning.fsx" />
     <None Include="examples\Projections and the Lasso.fsx" />
-    <None Include="examples\Sparse Learning.fsx" />
     <None Include="examples\Learning with Corruption.fsx" />
     <None Include="examples\Multiclass Classification on MNIST.fsx" />
     <None Include="examples\Variance Estimation.fsx" />
