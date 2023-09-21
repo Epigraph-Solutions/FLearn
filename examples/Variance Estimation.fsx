@@ -1,5 +1,5 @@
 ﻿(**
-One strength of Gaussian Processes is that they provide both an estimate of the conditional mean, and the conditional Variance.
+One strength of Gaussian Processes is that they provide both an estimate of the conditional mean, and the conditional variance.
 Here we show how one can achieve this using a model that is trained on the errors of model trained to find the conditional mean.
 Along the way we utilize a sparse approximation of the Gaussian kernel feature map.
 
@@ -91,7 +91,7 @@ let range = [| -float32 Math.PI .. 0.001f .. float32 Math.PI |]
       y =
           Array.map
               (fun x ->
-                  let x = toVector x in
+                  let x = toVector x
 
                   standardLink (mean.Predict x)
                   + 3.0f * sqrt (positiveRegressionLink (variance.Predict x)))
@@ -104,7 +104,7 @@ let range = [| -float32 Math.PI .. 0.001f .. float32 Math.PI |]
       y =
           Array.map
               (fun x ->
-                  let x = toVector x in
+                  let x = toVector x
 
                   standardLink (mean.Predict x)
                   - 3.0f * sqrt (positiveRegressionLink (variance.Predict x)))
