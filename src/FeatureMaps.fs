@@ -10,7 +10,7 @@ module FeatureMaps =
     let featureMap (F : #IFeatureMap<'instance>) (x : 'instance) = F.FeatureMap x
     let dimension (F : #IFeatureMap<'instance>) = F.Dimension
 
-    ///Adds preproccessing step given by the function f.
+    ///Adds preprocessing step given by the function f.
     let preProcess (f : 'rawData -> 'instance) (F : #IFeatureMap<'instance>) = 
         {
             new IFeatureMap<'rawData> with
@@ -39,7 +39,7 @@ module FeatureMaps =
                     |> DenseVector.ofSeq
 
         }
-    ///Froms the direct sum of all features.
+    ///Forms the direct sum of all features.
     let sumFeatures (features : seq<#IFeatureMap<'instance>>) = 
         {
             new IFeatureMap<'instance> with
@@ -111,7 +111,7 @@ module FeatureMaps =
                 member __.Dimension = nFeatures
         }
 
-    ///Randomized approximation to the gaussian kernel feature map.
+    ///Randomized approximation to the Gaussian kernel feature map.
     let randomFourierFeatureMap (sigma : float32) inputDimension numberOfFeatures = 
         let sigma = float sigma
         let normalization = sqrt (2.0f / float32 numberOfFeatures)
