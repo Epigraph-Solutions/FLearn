@@ -8,7 +8,7 @@
     <PackageProjectUrl>https://mlunhinged.visualstudio.com/FLearn</PackageProjectUrl>
     <Authors>Brendan van Rooyen</Authors>
     <Description>A Supervised Learning Library for F#</Description>
-    <Version>2.0.4</Version>
+    <Version>2.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,8 +21,7 @@
     <Compile Include="src\Domain Types.fs" />
     <Compile Include="src\Utilities.fs" />
     <Compile Include="src\Distributions.fs" />
-    <Compile Include="src\LinkFunctions.fs" />
-    <Compile Include="src\LossFunctions.fs" />
+    <Compile Include="src\ConvexLossFunctions.fs" />
     <Compile Include="src\LearningWithCorruption.fs" />
     <Compile Include="src\PerformanceMeasures.fs" />
     <Compile Include="src\Covers.fs" />

@@ -4,27 +4,35 @@ module PerformanceMeasures =
     open FLearn.Utilities
     open MathNet.Numerics.LinearAlgebra
 
-    let lossBatch (loss: LossFunction<'label>) testSet (predictor: IPredictor<'instance>) =
+    let lossBatch
+        (loss: ConvexLossFunction<'label, 'prediction>)
+        testSet
+        (predictor: IPredictor<'instance, 'prediction>)
+        =
         testSet
         |> Seq.fold
             (fun (totalLoss, n) (x, y) ->
                 let p = predictor.Predict x
-                let l = loss.Loss y p |> fst
+                let l = loss.Loss y p
                 totalLoss + l, n + One)
             (Zero, Zero)
         |> fun (loss, n) -> loss / n
 
-    let lossesBatch (loss: LossFunction<'label>) testSet (predictor: IPredictor<'instance>) =
+    let lossesBatch
+        (loss: ConvexLossFunction<'label, 'prediction>)
+        testSet
+        (predictor: IPredictor<'instance, 'prediction>)
+        =
         testSet
         |> Seq.map (fun (x, y) ->
             let p = predictor.Predict x
-            x, loss.Loss y p |> fst)
+            x, loss.Loss y p)
 
-    let loss01 testSet (predictor: IPredictor<'instance>) =
+    let loss01 testSet (predictor: IPredictor<'instance, ProbabilityVector>) =
         testSet
         |> Seq.fold
             (fun (count, loss) (x, y) ->
-                let prediction = predictor.Predict x |> classificationLink
+                let prediction = predictor.Predict x |> Vector.maxIndex
 
                 if prediction = y then
                     count + 1.0f, loss
@@ -88,7 +96,10 @@ module PerformanceMeasures =
               RocCurve: (float32 * float32 * float32)[]
               AUC: float32 }
 
-        let createConfusionCurve (testSet: ('instance * int) seq) (predictor: IPredictor<'instance>) =
+        let createConfusionCurve
+            (testSet: ('instance * int) seq)
+            (predictor: IPredictor<'instance, ProbabilityVector>)
+            =
             let scoredLabels =
                 testSet |> Seq.map (fun (x, y) -> let p = predictor.Predict x in y, p)
 

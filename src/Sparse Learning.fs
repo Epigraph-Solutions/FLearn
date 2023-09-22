@@ -2,12 +2,13 @@
 
 module SparseLearning =
     open FLearn.Utilities
+    open FLearn.ConvexLossFunctions
     open MathNet.Numerics.LinearAlgebra
 
     [<StructuredFormatDisplay("count {Count}, loss {AverageLoss}")>]
-    type SparseSGDNoAverageLearner<'instance, 'label> =
+    type SparseSGDNoAverageLearner<'instance, 'label, 'prediction> =
         { Features: IFeatureMap<'instance>
-          LossFunction: LossFunction<'label>
+          ConvexLossFunction: ConvexLossFunction<'label, 'prediction>
           Weights: Weights
           mutable Count: float32
           mutable AverageLoss: float32
@@ -23,13 +24,13 @@ module SparseLearning =
 
         member this.PredictOnline(x: 'instance) =
             let f = this.Features.FeatureMap x
-            Matrix.sparseMultiply (this.Weights, f)
+            Matrix.sparseMultiply (this.Weights, f) |> this.ConvexLossFunction.LinkFunction
 
         member this.Learn(x, y) =
             let loss, gradient =
                 let f = this.FeatureMap x
                 let prediction = Matrix.sparseMultiply (this.Weights, f)
-                let l, g = this.LossFunction.Loss y prediction
+                let l, g = this.ConvexLossFunction.ConvexLoss y prediction
                 l, Vector.sparseOuterProduct (g, f)
 
             let newCount = this.Count + One
@@ -46,11 +47,11 @@ module SparseLearning =
             this.AverageLoss <- Zero
             this.Count <- Zero
 
-        interface IPredictor<'instance> with
+        interface IPredictor<'instance, 'prediction> with
             member this.Predict x = this.PredictOnline x
 
-        interface ILearner<'instance, 'label> with
-            member this.LossFunction = this.LossFunction
+        interface ILearner<'instance, 'label, 'prediction> with
+            member this.ConvexLossFunction = this.ConvexLossFunction
             member this.Count = this.Count
             member this.AverageLoss = this.AverageLoss
             member this.PredictOnline x = this.PredictOnline x
@@ -61,7 +62,7 @@ module SparseLearning =
         let d = features.Dimension
 
         { Features = features
-          LossFunction = loss
+          ConvexLossFunction = loss
           Count = Zero
           Weights = SparseMatrix.zero loss.Dimension d
           AverageLoss = Zero

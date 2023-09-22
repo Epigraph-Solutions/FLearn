@@ -62,6 +62,7 @@ module DomainTypes =
     type Weights = Matrix<float32>
     type Prediction = Vector<float32>
     type Gradient = Vector<float32>
+    type ProbabilityVector = Vector<float32>
 
     type FeatureVector = Vector<float32>
 
@@ -69,19 +70,23 @@ module DomainTypes =
         abstract Dimension: int
         abstract FeatureMap: 'instance -> FeatureVector
 
-    type LossFunction<'label> =
+    type LossFunction<'label, 'prediction> = 'label -> 'prediction -> float32
+
+    type ConvexLossFunction<'label, 'prediction> =
         { Dimension: int
-          Loss: 'label -> Prediction -> float32 * Gradient }
+          ConvexLoss: 'label -> Prediction -> float32 * Gradient
+          LinkFunction: Prediction -> 'prediction
+          Loss: LossFunction<'label, 'prediction> }
 
     type Projection = Weights -> unit
 
-    type IPredictor<'instance> =
-        abstract Predict: 'instance -> Prediction
+    type IPredictor<'instance, 'prediction> =
+        abstract Predict: 'instance -> 'prediction
 
-    type ILearner<'instance, 'label> =
-        abstract LossFunction: LossFunction<'label>
+    type ILearner<'instance, 'label, 'prediction> =
+        abstract ConvexLossFunction: ConvexLossFunction<'label, 'prediction>
         abstract Count: float32
         abstract AverageLoss: float32
-        abstract PredictOnline: 'instance -> Prediction
+        abstract PredictOnline: 'instance -> 'prediction
         abstract Learn: ('instance * 'label) -> unit
         abstract TailAverage: unit -> unit

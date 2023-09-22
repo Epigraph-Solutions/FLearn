@@ -80,35 +80,16 @@ let range = [| -float32 Math.PI .. 0.001f .. float32 Math.PI |]
 
 //Plots, notice the usage of a link function in the output of the variances predictions.
 [ Scatter(x = Array.map (fst >> toFloat) sample, y = Array.map snd sample, mode = "markers", name = "Data")
+  Scatter(x = range, y = Array.map (toVector >> mean.Predict) range, marker = Marker(color = "DarkRed"), name = "Mean")
   Scatter(
       x = range,
-      y = Array.map (toVector >> mean.Predict >> standardLink) range,
-      marker = Marker(color = "DarkRed"),
-      name = "Mean"
-  )
-  Scatter(
-      x = range,
-      y =
-          Array.map
-              (fun x ->
-                  let x = toVector x
-
-                  standardLink (mean.Predict x)
-                  + 3.0f * sqrt (positiveRegressionLink (variance.Predict x)))
-              range,
+      y = Array.map (fun x -> let x = toVector x in mean.Predict x + 3.0f * sqrt (variance.Predict x)) range,
       marker = Marker(color = "Red"),
       name = "Upper Bound"
   )
   Scatter(
       x = range,
-      y =
-          Array.map
-              (fun x ->
-                  let x = toVector x
-
-                  standardLink (mean.Predict x)
-                  - 3.0f * sqrt (positiveRegressionLink (variance.Predict x)))
-              range,
+      y = Array.map (fun x -> let x = toVector x in mean.Predict x - 3.0f * sqrt (variance.Predict x)) range,
       marker = Marker(color = "Red"),
       name = "Lower Bound"
   ) ]
