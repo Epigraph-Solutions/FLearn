@@ -1,3 +1,7 @@
+2.1.1
+
+Removed random polynomial feature map.
+
 2.1.0 
 
 Lots of changes for 2.1.0
