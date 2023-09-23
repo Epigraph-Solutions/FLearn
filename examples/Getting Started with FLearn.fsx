@@ -4,7 +4,7 @@ downloading the FLearn package from nuget, before opening the relevant libraries
 *)
 
 #r "nuget: XPlot.Plotly"
-#r "nuget: FLearn, 2.1.0"
+#r "nuget: FLearn, 2.1.1"
 
 open System
 open FLearn

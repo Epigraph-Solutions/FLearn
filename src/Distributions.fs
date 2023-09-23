@@ -30,8 +30,6 @@ module Distribution =
     let map2 f p1 p2 =
         create (fun () -> let a, b = sample p1, sample p2 in f a b)
 
-    let lift f x : Distribution<_> = always (f x)
-
     let replicate n (p: Distribution<'a>) =
         create (fun () -> Array.init n (fun _ -> sample p))
 

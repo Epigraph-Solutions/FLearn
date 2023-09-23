@@ -8,7 +8,7 @@ estimation.
 *)
 
 #r "nuget: XPlot.Plotly"
-#r "nuget: FLearn, 2.1.0"
+#r "nuget: FLearn, 2.1.1"
 
 open System
 open FLearn
@@ -44,17 +44,17 @@ let P =
 
 //Sample form Target Distribution.
 let n = 20000
-let sample = P |> Distribution.samples |> Seq.take n |> Seq.toArray
+let sample = P |> Distribution.replicate n |> Distribution.sample
 
 //Setting up Candidate Feature Maps.
 let features sigma =
     sample
     |> Array.map (fst >> toVector) // Extract x from the sample
     |> Covers.gaussianKernelCover 50 0.0001f sigma
-    |> nystromFeatureMap sigma
+    |> nystroemFeatureMap sigma
     |> preProcess toVector
 
-let featureMaps = Array.Parallel.map features [| 0.1f..0.01f..0.4f |] //Setup the Feature Maps.
+let featureMaps = Array.Parallel.map features [| 0.1f..0.05f..0.4f |] //Setup the Feature Maps.
 
 //Online Learning -- Mean.
 let learnersMean = Array.map (createSGDLearner squareLoss) featureMaps // Setup candidate learners for the conditional mean.

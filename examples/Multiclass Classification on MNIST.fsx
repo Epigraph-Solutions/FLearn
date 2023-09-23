@@ -8,7 +8,7 @@ train time using HOGWILD! Finally we show how you can get better performance usi
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win"
 #r "nuget: FSharp.Collections.ParallelSeq"
-#r "nuget: FLearn, 2.1.0"
+#r "nuget: FLearn, 2.1.1"
 
 open System
 open System.Diagnostics
@@ -23,6 +23,14 @@ let timeFunction f x =
     stopwatch.Stop()
     printfn "Elapsed time: %f seconds" (stopwatch.Elapsed.TotalSeconds)
     result
+
+(**
+While not in Base FLearn, as it requires parallel sequences, HOGWILD! is a simple technique to parallelize Online convex optimization.
+No locking here! Just iterate over the train sequence in parallel....
+While it invalidates our online estimate of the batch loss, it does improve training time!
+*)
+let hogWild sample learner =
+    PSeq.iter (fun s -> learn s learner) sample
 
 //Data -- You will need to change this to point to a local version of the MNIST data set to replicate my results.
 let path = @"C:\Users\User\OneDrive\Data\MNIST\"
@@ -58,14 +66,6 @@ timeFunction (learnSequence train) linearLearner
 let performanceLinear = PerformanceMeasures.loss01 test linearLearner
 
 //First Order Features HOGWILD!
-
-(**
-While not in Base FLearn, as it requires parallel sequences, HOGWILD! is a simple technique to parallelize Online convex optimization.
-No locking here! Just iterate over the train sequence in parallel....
-While it invalidates our online estimate of the batch loss, it does improve training time!
-*)
-let hogWild sample learner =
-    PSeq.iter (fun s -> learn s learner) sample
 
 let linearLearnerHOGWILD = identityFeatureMap d |> createSGDLearner loss
 timeFunction (hogWild train) linearLearnerHOGWILD

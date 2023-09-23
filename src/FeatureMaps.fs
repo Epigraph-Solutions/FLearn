@@ -78,33 +78,11 @@ module FeatureMaps =
                 }
                 |> DenseVector.ofSeq }
 
-    ///Standard linear feature map.
     let identityFeatureMap (dimension: int) =
         { new IFeatureMap<Vector<float32>> with
             member this.Dimension = dimension
             member this.FeatureMap(x: Vector<float32>) = x }
 
-    ///Randomized approximation to polynomial feature map of order k.
-    let randomPolynomialMap k inputDimension nFeatures =
-        let Z = One / sqrt (float32 nFeatures)
-
-        let W =
-            let randomMatrix () =
-                DenseMatrix.init nFeatures inputDimension (fun _ _ ->
-                    if Distribution.rnd.Next(2) = 0 then 1.0f else -1.0f)
-
-            Array.init k (fun _ -> randomMatrix ())
-
-        { new IFeatureMap<Vector<float32>> with
-            member __.FeatureMap x =
-                let V = Array.map (fun w -> w * x) W
-
-                Array.Parallel.init nFeatures (fun i -> Array.fold (fun state (v: Vector<_>) -> state * v.[i]) Z V)
-                |> DenseVector.raw
-
-            member __.Dimension = nFeatures }
-
-    ///Randomized approximation to the Gaussian kernel feature map.
     let randomFourierFeatureMap (sigma: float32) inputDimension numberOfFeatures =
         let sigma = float sigma
         let normalization = sqrt (2.0f / float32 numberOfFeatures)
@@ -124,7 +102,7 @@ module FeatureMaps =
 
             member __.Dimension = numberOfFeatures }
 
-    let nystromFeatureMap (sigma: float32) (examples: Vector<float32> seq) =
+    let nystroemFeatureMap (sigma: float32) (examples: Vector<float32> seq) =
         let d = Seq.length examples
         let instanceMatrix = DenseMatrix.ofRowSeq examples
         let norms2 = examples |> Seq.map (fun v -> v * v) |> Seq.toArray
