@@ -68,3 +68,15 @@ module Distribution =
 
     let estimateProbability n predicate distribution =
         estimateExpectation n (fun x -> if predicate x then One else Zero) distribution
+
+    ///Shuffles an array in place
+    let shuffle (samples: 'x[]) =
+        let n = samples.Length
+
+        for i in [ 0 .. n - 1 ] do
+            let r = i + rnd.Next(n - i)
+            let temp = samples.[r]
+            samples.[r] <- samples.[i]
+            samples.[i] <- temp
+
+        samples
