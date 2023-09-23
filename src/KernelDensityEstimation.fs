@@ -61,21 +61,14 @@ module GaussianMeanMethods =
             let w = this.Projection(cover)
             GaussianKernelDensityEstimator(this.Sigma, cover, w)
 
-    module GaussianTools =
+    let createGaussianKernelDensityEstimator sigma sample weights =
+        GaussianKernelDensityEstimator(sigma, sample, weights)
 
-        let equalWeights sigma (sample: Vector<float32> seq) =
-            let n = Seq.length sample
-            GaussianKernelDensityEstimator(sigma, sample, DenseVector.create n (1.0f / float32 n))
+    let equalWeights sigma (sample: Vector<float32> seq) =
+        let n = Seq.length sample
+        GaussianKernelDensityEstimator(sigma, sample, DenseVector.create n (1.0f / float32 n))
 
-        let projection (f2: GaussianKernelDensityEstimator) (w: Vector<float32>, f1: GaussianKernelDensityEstimator) =
-            if f1.Sigma = f2.Sigma then
-                let K = f2.KernelMatrix()
-                let Z = f2.Instances |> Seq.map (fun x -> w * f1.FeatureMap(x)) |> DenseVector.ofSeq
-                K.SolveIterative(Z, MathNet.Numerics.LinearAlgebra.Single.Solvers.BiCgStab())
-            else
-                failwith "Sigma must be the same for both f1 and f2."
+    let reduce maxIterations error (G: GaussianKernelDensityEstimator) = G.Reduce(maxIterations, error)
 
-        let reduce maxIterations error (G: GaussianKernelDensityEstimator) = G.Reduce(maxIterations, error)
-
-        let reduceParallel chunkSize maxIterations error (G: GaussianKernelDensityEstimator) =
-            G.ReduceParallel(chunkSize, maxIterations, error)
+    let reduceParallel chunkSize maxIterations error (G: GaussianKernelDensityEstimator) =
+        G.ReduceParallel(chunkSize, maxIterations, error)

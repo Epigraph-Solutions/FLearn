@@ -8,7 +8,7 @@ train time using HOGWILD! Finally we show how you can get better performance usi
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win"
 #r "nuget: FSharp.Collections.ParallelSeq"
-#r @"C:\Users\User\OneDrive\Code\FLearn\bin\Release\net7.0\FLearn.dll"
+#r "nuget: FLearn"
 
 open System
 open System.Diagnostics
@@ -83,9 +83,9 @@ We wont go into the details here, suffice to say they are a powerful, non linear
 that one can use to increase performance over vanilla linear logistic regression.
 *)
 let randomFourierLearner =
-    randomFourierFeatureMap 6.0f d 1000 |> createAdaGradLearner 1.0f loss
+    randomFourierFeatureMap 6.0f d 1000 |> createAdaGradLearner 1.0f loss // Using AdaGrad here as it yields better predictive performance.
 
 timeFunction (hogWild train) randomFourierLearner
 
 let performanceRandomFourierLearner =
-    PerformanceMeasures.loss01 test randomFourierLearner // Note the increase in performance
+    PerformanceMeasures.loss01 test randomFourierLearner // Note the increase in performance.
