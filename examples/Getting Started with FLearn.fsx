@@ -3,8 +3,8 @@ Here we start with a simple example, showing how FLearn can be used to learn a c
 downloading the FLearn package from nuget, before opening the relevant libraries.
 *)
 
-#r "nuget: XPlot.Plotly"
 #r "nuget: FLearn, 2.1.1"
+#r "nuget: XPlot.Plotly"
 
 open System
 open FLearn
