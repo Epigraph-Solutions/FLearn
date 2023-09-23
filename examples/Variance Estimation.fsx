@@ -7,19 +7,14 @@ One issue with doing regression on errors, is that errors are always positive! W
 estimation.
 *)
 
-#r "nuget: MathNet.Numerics"
-#r "nuget: MathNet.Numerics.FSharp"
-#r "nuget: MathNet.Numerics.MKL.Win"
-#r "nuget: FLearn"
 #r "nuget: XPlot.Plotly"
+#r "nuget: FLearn, 2.1.0"
 
 open System
 open FLearn
 open XPlot.Plotly
 open MathNet.Numerics.LinearAlgebra
 open MathNet.Numerics.Distributions
-
-MathNet.Numerics.Control.UseNativeMKL()
 
 //Helpers -- Just some distributions and conversions between vectors and floats.
 let rnd = Distribution.rnd

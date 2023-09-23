@@ -8,7 +8,7 @@ train time using HOGWILD! Finally we show how you can get better performance usi
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win"
 #r "nuget: FSharp.Collections.ParallelSeq"
-#r "nuget: FLearn"
+#r "nuget: FLearn, 2.1.0"
 
 open System
 open System.Diagnostics
@@ -45,8 +45,8 @@ let parse (s: string) =
 
     (featureVector, label)
 
-let train = IO.File.ReadAllLines(trainPath) |> Array.map parse
-let test = IO.File.ReadAllLines(testPath) |> Array.map parse
+let train = IO.File.ReadLines(trainPath) |> Seq.map parse
+let test = IO.File.ReadLines(testPath) |> Seq.map parse
 
 //Multi-class Logistic Regression
 let k = 10 // 10 classes

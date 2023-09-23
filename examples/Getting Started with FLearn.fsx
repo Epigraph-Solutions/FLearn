@@ -2,11 +2,13 @@
 Here we start with a simple example, showing how FLearn can be used to learn a classifier for the UCI Adult Census Data set. We start by 
 downloading the FLearn package from nuget, before opening the relevant libraries.
 *)
+
 #r "nuget: XPlot.Plotly"
-#r "nuget: FLearn"
+#r "nuget: FLearn, 2.1.0"
 
 open System
 open FLearn
+open FLearn.PerformanceMeasures
 open MathNet.Numerics.LinearAlgebra
 open XPlot.Plotly
 
@@ -49,10 +51,10 @@ let learner = createSGDLearner loss features // This sets the learning algorithm
 
 learnSequence train learner // Now we learn the training sequence using our learner
 
-let performance = PerformanceMeasures.loss01 test learner // Finally, we check the performance on the test set.
+let performance = loss01 test learner // Finally, we check the performance on the test set.
 
 //Confusion and ROC curves
-let confusionCurve = PerformanceMeasures.createConfusionCurve test learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
+let confusionCurve = BinaryClassification.createConfusionCurve test learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
 
 let truePostiveRates, trueNegativeRates, thresholds =
     Array.unzip3 confusionCurve.RocCurve // Extracts true positive and true negative rates from ROC curve as well as thresholds.

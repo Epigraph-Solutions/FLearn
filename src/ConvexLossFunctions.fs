@@ -60,7 +60,6 @@ module ConvexLossFunctions =
                 else
                     q * (y - prediction) }
 
-
     let positiveRegressionLoss: ConvexLossFunction<float32, float32> =
         { Dimension = 1
           ConvexLoss =

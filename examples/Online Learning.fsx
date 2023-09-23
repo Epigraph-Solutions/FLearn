@@ -3,8 +3,8 @@ Here we demonstrate FLearns usage in the online setting,
 wherein data is learned from and predictions are assessed "as they come", rather than in a big batch.
 *)
 
-#r "nuget: FLearn"
 #r "nuget: XPlot.Plotly"
+#r "nuget: FLearn, 2.1.0"
 
 open System
 open FLearn
@@ -61,7 +61,7 @@ let onlineRun =
     train
     |> Seq.map (fun (x, y) (* The learner receives the pair (x,y) *) ->
         let prediction = predictOnline learner x // It first makes a prediction using x.
-        let l = lossIncurred loss y prediction // It then measures accuracy of this prediction against the true y.
+        let l = loss.Loss y prediction // It then measures accuracy of this prediction against the true y.
         learn (x, y) learner // It then learns from its mistake.
         l // Finally we output the loss.
     )
@@ -73,7 +73,11 @@ let performance = PerformanceMeasures.lossBatch loss train learner
 let performanceOnline = onlineRun[onlineRun.Length - 1]
 
 //Finally, we plot our results, showing how the online performance improves with time, and approaches the batch performance.
-[ Scatter(x = [ 0 .. onlineRun.Length - 1 ], y = onlineRun)
-  Scatter(x = [ 0 .. onlineRun.Length - 1 ], y = Seq.replicate onlineRun.Length performance) ]
+[ Scatter(x = [ 0 .. onlineRun.Length - 1 ], y = onlineRun, name = "Online Performance")
+  Scatter(
+      x = [ 0 .. onlineRun.Length - 1 ],
+      y = Seq.replicate onlineRun.Length performance,
+      name = "Best Batch Performance"
+  ) ]
 |> Chart.Plot
 |> Chart.Show

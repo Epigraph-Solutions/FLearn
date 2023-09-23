@@ -1,12 +1,13 @@
-﻿#r "nuget: FLearn"
-
-(**
+﻿(**
 Shameless self promotion incoming. Here we show how FLearn can learn classifiers from noisily labeled training sets,
 utilizing techniques I had a hand in generalizing.
 *)
 
+#r "nuget: FLearn, 2.1.0"
+
 open System
 open FLearn
+open FLearn.PerformanceMeasures
 open FLearn.LearningWithCorruption
 open MathNet.Numerics.LinearAlgebra
 
@@ -75,13 +76,18 @@ let noise label : Distribution<CorruptedLabel> =
 
 let corrupt y = Distribution.sample <| noise y // This corrupts a clean label.
 let corruptedTrain = train |> Array.map (fun (x, y) -> (x, corrupt y)) // This corrupts the training set.
-let cleanTest = test |> Array.map (fun (x, y) -> x, Clean y) // This make sure we know the testing set is uncorrupted.
 
 //Corrupted Logistic Regression.
-let loss = logLossCC 2 // Note we now use the corruption corrected loss.
+let cleanLoss = logLoss 2
+let ccLoss = logLossCC 2 // Note we now use the corruption corrected loss.
 let features = identityFeatureMap d
-let learner = createSGDLearner loss features
+let learner = createSGDLearner ccLoss features
 
 learnSequence corruptedTrain learner
 
-let performance = PerformanceMeasures.lossBatch (zeroOneLossCC 2) cleanTest learner
+let predictor =
+    { new IPredictor<_, _> with
+        member this.Predict x =
+            learner.Predict x |> cleanLoss.LinkFunction }
+
+let performance = loss01 test predictor

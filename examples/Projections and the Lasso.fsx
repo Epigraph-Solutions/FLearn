@@ -2,10 +2,11 @@
 Here we show how the ProjectedSGDLearner type can be used to perform a L1 regularized logistic regression.
 *)
 
-#r "nuget: FLearn"
+#r "nuget: FLearn, 2.1.0"
 
 open System
 open FLearn
+open FLearn.PerformanceMeasures
 open MathNet.Numerics.LinearAlgebra
 
 //Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
@@ -42,12 +43,12 @@ let test = IO.File.ReadAllLines(testPath) |> Array.map parse
 //Logistic Regression
 let loss = logLoss 2
 let features = identityFeatureMap d
-let projection = Projections.L1Ball 5.0f // Here we define our projection operator. This ensures the weights used by our learner stay in an L1 Ball of radius 5.
+let projection = Projections.L1Ball 10.0f // This ensures the weights used by our learner stay in an L1 Ball of radius 10.
 let learner = createProjectedSGDLearner loss projection features
 
 learnSequence train learner
 
-let performance = PerformanceMeasures.lossBatch (zeroOneLoss 2) test learner
+let performance = loss01 test learner
 
 //The optimizing over the L1 Ball promotes sparsity, in that most of the weights are close to zero. Here we demonstrate this.
 learner.AverageWeights.CoerceZero(0.001)
