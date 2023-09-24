@@ -3,7 +3,7 @@ Shameless self promotion incoming. Here we show how FLearn can learn classifiers
 utilizing techniques I had a hand in generalizing.
 *)
 
-#r "nuget: FLearn, 2.1.1"
+#r "nuget: FLearn, 2.1.2"
 
 open System
 open FLearn

@@ -2,7 +2,7 @@
 Here we show how the ProjectedSGDLearner type can be used to perform a L1 regularized logistic regression.
 *)
 
-#r "nuget: FLearn, 2.1.1"
+#r "nuget: FLearn, 2.1.2"
 
 open System
 open FLearn

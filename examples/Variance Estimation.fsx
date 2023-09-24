@@ -8,7 +8,7 @@ estimation.
 *)
 
 #r "nuget: XPlot.Plotly"
-#r "nuget: FLearn, 2.1.1"
+#r "nuget: FLearn, 2.1.2"
 
 open System
 open FLearn

@@ -8,7 +8,7 @@ train time using HOGWILD! Finally we show how you can get better performance usi
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win"
 #r "nuget: FSharp.Collections.ParallelSeq"
-#r "nuget: FLearn, 2.1.1"
+#r "nuget: FLearn, 2.1.2"
 
 open System
 open System.Diagnostics
