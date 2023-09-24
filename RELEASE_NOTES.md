@@ -1,3 +1,7 @@
+2.1.2
+
+Added Predict Member to Learner type, emphasizing its online and batch nature.
+
 2.1.1
 
 Removed random polynomial feature map.
