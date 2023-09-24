@@ -91,16 +91,3 @@ timeFunction (hogWild train) randomFourierLearner
 
 let performanceRandomFourierLearner =
     PerformanceMeasures.loss01 test randomFourierLearner // Note the increase in performance.
-
-
-test
-|> Seq.fold
-    (fun (count, loss) (x, y) ->
-        let pred = randomFourierLearner.PredictOnline x |> Vector.maxIndex
-
-        if pred = y then
-            count + 1.0, loss
-        else
-            count + 1.0, loss + 1.0)
-    (0.0, 0.0)
-|> fun (count, loss) -> loss / count
