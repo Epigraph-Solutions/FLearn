@@ -16,6 +16,8 @@ open FSharp.Collections.ParallelSeq
 open FLearn
 open MathNet.Numerics.LinearAlgebra
 
+//Helper Functions.
+
 //This function will be used to assess train times
 let timeFunction f x =
     let stopwatch = Stopwatch.StartNew()
@@ -61,7 +63,7 @@ let k = 10 // 10 classes
 let loss = logLoss k
 
 //First Order Features
-let linearLearner = identityFeatureMap d |> createSGDLearner loss
+let linearLearner = identityFeatureMap d |> createProjectedSGDLearner loss ignore
 timeFunction (learnSequence train) linearLearner
 let performanceLinear = PerformanceMeasures.loss01 test linearLearner
 
@@ -89,3 +91,16 @@ timeFunction (hogWild train) randomFourierLearner
 
 let performanceRandomFourierLearner =
     PerformanceMeasures.loss01 test randomFourierLearner // Note the increase in performance.
+
+
+test
+|> Seq.fold
+    (fun (count, loss) (x, y) ->
+        let pred = randomFourierLearner.PredictOnline x |> Vector.maxIndex
+
+        if pred = y then
+            count + 1.0, loss
+        else
+            count + 1.0, loss + 1.0)
+    (0.0, 0.0)
+|> fun (count, loss) -> loss / count

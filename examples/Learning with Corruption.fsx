@@ -44,7 +44,7 @@ let test = IO.File.ReadAllLines(testPath) |> Array.map parse
 
 //Corrupted Training Data - Here we define the noise rates on the two classes.
 let sigmaNegative = 0.1f
-let sigmaPositive = 0.4f
+let sigmaPositive = 0.2f
 
 let T =
     [ [ 1.0f - sigmaNegative; sigmaPositive ]
@@ -85,6 +85,7 @@ let learner = createSGDLearner ccLoss features
 
 learnSequence corruptedTrain learner
 
+//Define a shiny new predictor from the one learned with corrupted data.
 let predictor =
     { new IPredictor<_, _> with
         member this.Predict x =

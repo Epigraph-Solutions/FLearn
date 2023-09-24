@@ -44,17 +44,17 @@ let parse (s: string) =
 let train = IO.File.ReadLines(trainPath) |> Seq.map parse
 let test = IO.File.ReadLines(testPath) |> Seq.map parse
 
-//Logistic Regression - Here we define the loss function, features and learner.
+//Logistic Regression - Here     we define the loss function, features and learner.
 let loss = logLoss 2 // 2 for 2 classes, this is binary classification after all!
 let features = identityFeatureMap d // The "do nothing" feature map, for data that is ready to go without processing.
 let learner = createSGDLearner loss features // This sets the learning algorithm up, SGD in this case.
 
-learnSequence train learner // Now we learn the training sequence using our learner
+learnSequence train learner // Now we learn the training sequence using our learner.
 
 let performance = loss01 test learner // Finally, we check the performance on the test set.
 
-//Confusion and ROC curves
-let confusionCurve = BinaryClassification.createConfusionCurve test learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
+//Confusion and ROC curves.
+let confusionCurve = BinaryClassification.createConfusionCurve train learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
 
 let truePostiveRates, trueNegativeRates, thresholds =
     Array.unzip3 confusionCurve.RocCurve // Extracts true positive and true negative rates from ROC curve as well as thresholds.
