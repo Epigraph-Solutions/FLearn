@@ -87,6 +87,7 @@ module DomainTypes =
         abstract ConvexLossFunction: ConvexLossFunction<'label, 'prediction>
         abstract Count: float32
         abstract AverageLoss: float32
+        abstract Predict: 'instance -> 'prediction
         abstract PredictOnline: 'instance -> 'prediction
         abstract Learn: ('instance * 'label) -> unit
         abstract TailAverage: unit -> unit

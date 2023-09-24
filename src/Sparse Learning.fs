@@ -54,6 +54,7 @@ module SparseLearning =
             member this.ConvexLossFunction = this.ConvexLossFunction
             member this.Count = this.Count
             member this.AverageLoss = this.AverageLoss
+            member this.Predict x = this.PredictOnline x
             member this.PredictOnline x = this.PredictOnline x
             member this.Learn example = this.Learn example
             member this.TailAverage() = this.TailAverage()
