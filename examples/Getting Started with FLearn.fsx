@@ -56,9 +56,9 @@ let performance = loss01 test learner // Finally, we check the performance on th
 //Confusion and ROC curves.
 let confusionCurve = BinaryClassification.createConfusionCurve train learner //Creates curve of confusion matrices as we vary the threshold over which we classify as 1.
 
-let truePostiveRates, trueNegativeRates, thresholds =
-    Array.unzip3 confusionCurve.RocCurve // Extracts true positive and true negative rates from ROC curve as well as thresholds.
+let truePostiveRates, trueNegativeRates, biases =
+    Array.unzip3 confusionCurve.RocCurve // Extracts true positive and true negative rates from ROC curve as well as the biases.
 
-Scatter(x = truePostiveRates, y = trueNegativeRates, text = thresholds, hoverinfo = "text")
+Scatter(x = truePostiveRates, y = trueNegativeRates, text = biases, hoverinfo = "text")
 |> Chart.Plot
 |> Chart.Show
