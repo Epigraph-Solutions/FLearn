@@ -28,8 +28,6 @@ let uniform lower upper =
 let toVector (x: float32) = DenseVector.raw [| x |]
 
 //Target Distribution, note the non uniformity of the error.
-let Px = uniform -Math.PI Math.PI
-
 let trueMean x =
     if x < 0.0 then 2.0 * x else sin (2.0 * x)
 
@@ -37,7 +35,7 @@ let noise x = 0.75 * cos (2.0 * x) |> abs
 
 let P =
     distribution {
-        let! x = Px
+        let! x = uniform -Math.PI Math.PI
         let! y = normal (trueMean x) (noise x)
         return float32 x, float32 y
     }
