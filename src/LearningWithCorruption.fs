@@ -7,8 +7,8 @@ module LearningWithCorruption =
     type Reconstruction = Matrix<float32>
 
     type CorruptedLabel =
-        | Clean of int
-        | Corrupted of int * Reconstruction
+        | Clean of MultiClassLabel
+        | Corrupted of MultiClassLabel * Reconstruction
 
     type PartialLoss =
         { Dimension: int //Number of Classes - 1

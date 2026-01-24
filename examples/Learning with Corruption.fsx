@@ -12,12 +12,12 @@ open FLearn.LearningWithCorruption
 open MathNet.Numerics.LinearAlgebra
 
 //Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
-let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
-let trainPath = path + "adult.txt"
-let testPath = path + "adult test.txt"
+let path = @"C:\Users\brend\OneDrive\Data\Adult Data Set\"
+let trainPath = path + "adult_train.svm"
+let testPath = path + "adult_test.svm"
 
 //Set the expected dimension of the input data and parse lib SVM format data to a vector and label.
-let d = 124
+let d = 105
 
 let parse (s: string) =
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -25,26 +25,27 @@ let parse (s: string) =
     let label =
         match blocks.[0] with
         | "-1" -> 0
-        | "+1" -> 1
+        | "1" -> 1
         | _ -> failwith "Invalid Label"
 
     let featureVector = DenseVector.zero d
+    featureVector.[d - 1] <- 1.0f
 
     for s in blocks.[1..] do
         let stuff = s.Split(':')
-        let index = int stuff.[0] - 1
+        let index = int stuff.[0]
         let value = float32 stuff.[1]
+
         featureVector.[index] <- value
 
-    featureVector.[d - 1] <- 1.0f
     (featureVector, label)
 
 let train = IO.File.ReadAllLines(trainPath) |> Array.map parse
 let test = IO.File.ReadAllLines(testPath) |> Array.map parse
 
 //Corrupted Training Data - Here we define the noise rates on the two classes.
-let sigmaNegative = 0.1f
-let sigmaPositive = 0.2f
+let sigmaNegative = 0.2f
+let sigmaPositive = 0.3f
 
 let T =
     [ [ 1.0f - sigmaNegative; sigmaPositive ]
@@ -81,7 +82,7 @@ let corruptedTrain = train |> Array.map (fun (x, y) -> (x, corrupt y)) // This c
 let cleanLoss = logLoss 2
 let ccLoss = logLossCC 2 // Note we now use the corruption corrected loss.
 let features = identityFeatureMap d
-let learner = createSGDLearner ccLoss features
+let learner = createAdaGradLearner 0.1f ccLoss features
 
 learnSequence corruptedTrain learner
 
@@ -92,3 +93,5 @@ let predictor =
             learner.Predict x |> cleanLoss.LinkFunction }
 
 let performance = loss01 test predictor
+
+printfn "Corrupted Logistic Regression 0/1 Loss: %f" performance

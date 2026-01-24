@@ -243,6 +243,7 @@ module Learners =
             member this.Learn example = this.Learn example
             member this.TailAverage() = this.TailAverage()
 
+
     let createAdaGradLearner g loss (features: IFeatureMap<'instance>) : AdaGradLearner<_, _, _> =
         let d = features.Dimension
 
@@ -254,3 +255,93 @@ module Learners =
           AverageLoss = Zero
           Gsquared = g * g
           LearningRate = DenseMatrix.create loss.Dimension d Zero }
+
+
+    [<StructuredFormatDisplay("count {Count}, loss {AverageLoss}")>]
+    type AdamLearner<'instance, 'label, 'prediction> =
+        { Features: IFeatureMap<'instance>
+          ConvexLossFunction: ConvexLossFunction<'label, 'prediction>
+          Weights: Weights
+          AverageWeights: Weights
+          mutable Count: float32
+          mutable AverageLoss: float32
+          LearningRate: float32
+          mu: Weights
+          nu: Weights
+          nu_max: Weights }
+
+        member this.FeatureMap(x: 'instance) = this.Features.FeatureMap x
+
+        member this.Dimension = this.Features.Dimension
+
+        interface IFeatureMap<'instance> with
+            member this.FeatureMap(x: 'instance) = this.FeatureMap x
+            member this.Dimension = this.Dimension
+
+        member this.PredictOnline(x: 'instance) =
+            let f = this.Features.FeatureMap x
+            this.Weights * f |> this.ConvexLossFunction.LinkFunction
+
+        member this.Predict(x: 'instance) =
+            let f = this.Features.FeatureMap x
+            this.AverageWeights * f |> this.ConvexLossFunction.LinkFunction
+
+        member this.Learn(x, y) =
+            let loss, gradient =
+                let f = this.FeatureMap x
+                let prediction = this.Weights * f
+                let l, g = this.ConvexLossFunction.ConvexLoss y prediction
+                l, Vector.OuterProduct(g, f)
+
+            let newCount = this.Count + One
+            let newAverageLoss = this.Count * this.AverageLoss / newCount + loss / newCount
+
+            Matrix.mapiInPlace (fun i j mu -> 0.9f * mu + 0.1f * gradient.[i, j]) this.mu
+            Matrix.mapiInPlace (fun i j nu -> 0.999f * nu + 0.001f * gradient.[i, j] * gradient.[i, j]) this.nu
+
+            let mu_hat = this.mu / (1.0f - pown 0.9f (int newCount))
+
+            let nu_hat = this.nu / (1.0f - pown 0.999f (int newCount))
+
+            Matrix.mapiInPlace (fun i j nu_m -> if nu_hat.[i, j] > nu_m then nu_hat.[i, j] else nu_m) this.nu_max
+
+            Matrix.mapiInPlace
+                (fun i j w -> w - this.LearningRate * mu_hat.[i, j] / (sqrt this.nu_max.[i, j] + 1e-8f))
+                this.Weights
+
+            Matrix.runningAverage (this.Count, this.AverageWeights, this.Weights)
+
+            this.Count <- newCount
+            this.AverageLoss <- newAverageLoss
+
+
+        member this.TailAverage() =
+            this.AverageWeights |> Matrix.mapInPlace (fun _ -> Zero)
+            this.Count <- Zero
+            this.AverageLoss <- Zero
+
+        interface IPredictor<'instance, 'prediction> with
+            member this.Predict x = this.Predict x
+
+        interface ILearner<'instance, 'label, 'prediction> with
+            member this.ConvexLossFunction = this.ConvexLossFunction
+            member this.Count = this.Count
+            member this.AverageLoss = this.AverageLoss
+            member this.Predict x = this.Predict x
+            member this.PredictOnline(x: 'instance) = this.PredictOnline x
+            member this.Learn example = this.Learn example
+            member this.TailAverage() = this.TailAverage()
+
+    let createAdamLearner lr loss (features: IFeatureMap<'instance>) : AdamLearner<_, _, _> =
+        let d = features.Dimension
+
+        { Features = features
+          ConvexLossFunction = loss
+          Count = Zero
+          Weights = DenseMatrix.zero loss.Dimension d
+          AverageWeights = DenseMatrix.zero loss.Dimension d
+          AverageLoss = Zero
+          LearningRate = lr
+          mu = DenseMatrix.zero loss.Dimension d
+          nu = DenseMatrix.zero loss.Dimension d
+          nu_max = DenseMatrix.zero loss.Dimension d }

@@ -42,8 +42,7 @@ module GaussianMeanMethods =
 
         member this.Projection(sample: Vector<float32> seq) =
             let K =
-                GaussianKernelDensityEstimator(this.Sigma, sample, DenseVector.raw [| 0.0f |])
-                    .KernelMatrix()
+                GaussianKernelDensityEstimator(this.Sigma, sample, DenseVector.raw [| 0.0f |]).KernelMatrix()
 
             let Z = sample |> Seq.map (fun x -> this.Predict x) |> DenseVector.ofSeq
             K.SolveIterative(Z, MathNet.Numerics.LinearAlgebra.Single.Solvers.BiCgStab())

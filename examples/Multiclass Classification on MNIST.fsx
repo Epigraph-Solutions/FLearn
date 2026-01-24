@@ -8,13 +8,15 @@ train time using HOGWILD! Finally we show how you can get better performance usi
 #r "nuget: MathNet.Numerics.FSharp"
 #r "nuget: MathNet.Numerics.MKL.Win"
 #r "nuget: FSharp.Collections.ParallelSeq"
-#r "nuget: FLearn, 2.1.2"
+#r @"../bin/Release/net7.0/FLearn.dll"
 
 open System
 open System.Diagnostics
 open FSharp.Collections.ParallelSeq
 open FLearn
 open MathNet.Numerics.LinearAlgebra
+
+MathNet.Numerics.Control.UseNativeMKL() // Using MKL for Speed
 
 //Helper Functions.
 
@@ -35,7 +37,7 @@ let hogWild sample learner =
     PSeq.iter (fun s -> learn s learner) sample
 
 //Data -- You will need to change this to point to a local version of the MNIST data set to replicate my results.
-let path = @"C:\Users\User\OneDrive\Data\MNIST\"
+let path = @"C:\Users\brend\OneDrive\Data\MNIST\"
 let trainPath = path + "MNIST train.txt"
 let testPath = path + "MNIST test.txt"
 
@@ -63,9 +65,11 @@ let k = 10 // 10 classes
 let loss = logLoss k
 
 //First Order Features
-let linearLearner = identityFeatureMap d |> createProjectedSGDLearner loss ignore
+let linearLearner = identityFeatureMap d |> createAdamLearner 0.01f loss
 timeFunction (learnSequence train) linearLearner
 let performanceLinear = PerformanceMeasures.loss01 test linearLearner
+
+printfn "Linear Learner 0/1 Loss: %f" performanceLinear
 
 //First Order Features HOGWILD!
 
@@ -75,19 +79,31 @@ timeFunction (hogWild train) linearLearnerHOGWILD
 let performanceLinearLearnerHOGWILD =
     PerformanceMeasures.loss01 test linearLearnerHOGWILD
 
+printfn "Linear Learner HOGWILD! 0/1 Loss: %f" performanceLinearLearnerHOGWILD
+
 //Random Fourier Features
 
-MathNet.Numerics.Control.UseNativeMKL() // Using MKL for Speed
 
 (**
-Random Fourier Features work by providing a randomized, finite dimensional approximation to the Gaussian feature map.
-We wont go into the details here, suffice to say they are a powerful, non linear preprocessing trick
-that one can use to increase performance over vanilla linear logistic regression.
+The Nystroem Feature Map is a way to appproximate kernel methods via random features.
+We will use it here with a Gaussian Kernel. We first create a cover of the training data, 
+to only inlcude those data points that are most representative of the training set. We the apply 
+the Nystroem feature map to create random features.
 *)
-let randomFourierLearner =
-    randomFourierFeatureMap 6.0f d 1000 |> createAdaGradLearner 1.0f loss // Using AdaGrad here as it yields better predictive performance.
 
-timeFunction (hogWild train) randomFourierLearner
+let features =
+    train
+    |> Seq.map fst
+    |> Covers.gaussianKernelCoverParallel 5000 100 0.01f 6.0f
+    |> nystroemFeatureMap 6.0f
+
+printfn "Dimension of Nystroem Feature Map: %d" features.Dimension
+
+let nystroemLearner = createAdaGradLearner 0.1f loss features
+timeFunction (hogWild train) nystroemLearner
 
 let performanceRandomFourierLearner =
-    PerformanceMeasures.loss01 test randomFourierLearner // Note the increase in performance.
+    PerformanceMeasures.loss01 test nystroemLearner // Note the increase in performance.
+
+
+printfn "Random Fourier Features Learner HOGWILD! 0/1 Loss: %f" performanceRandomFourierLearner

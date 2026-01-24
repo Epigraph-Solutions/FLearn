@@ -57,14 +57,22 @@ module DomainTypes =
 
         static member inline (/)(p1: Distribution<'a>, a2: 'a) = { Sample = fun () -> p1.Sample() / a2 }
         static member inline (/)(a1: 'a, p2: Distribution<'a>) = { Sample = fun () -> a1 / p2.Sample() }
-        static member inline (~-)(p1: Distribution<'a>) = { Sample = fun () -> - p1.Sample() }
+        static member inline (~-)(p1: Distribution<'a>) = { Sample = fun () -> -p1.Sample() }
 
+    type Score = float32
+    type Real = float32
     type Weights = Matrix<float32>
     type Prediction = Vector<float32>
     type Gradient = Vector<float32>
     type ProbabilityVector = Vector<float32>
 
     type FeatureVector = Vector<float32>
+
+    type BinaryLabel =
+        | Positive
+        | Negative
+
+    type MultiClassLabel = int
 
     type IFeatureMap<'instance> =
         abstract Dimension: int

@@ -57,9 +57,54 @@ module PerformanceMeasures =
             member this.PostitiveCount = this.TruePositive + this.FalseNegative
             member this.NegativeCount = this.TrueNegative + this.FalsePositive
 
+        let createConfusionMatrix
+            threshold
+            (testSet: ('instance * BinaryLabel) seq)
+            (predictor: IPredictor<'instance, Score>)
+            =
+            testSet
+            |> Seq.fold
+                (fun C (x, y) ->
+                    let p = predictor.Predict x
+
+                    match (y, p) with
+                    | (Positive, p) when p > threshold ->
+                        { C with
+                            TruePositive = C.TruePositive + One }
+                    | (Positive, p) when p <= threshold ->
+                        { C with
+                            FalseNegative = C.FalseNegative + One }
+                    | (Negative, p) when p > threshold ->
+                        { C with
+                            FalsePositive = C.FalsePositive + One }
+                    | (Negative, p) when p <= threshold ->
+                        { C with
+                            TrueNegative = C.TrueNegative + One }
+                    | _ -> C)
+                { TruePositive = Zero
+                  FalsePositive = Zero
+                  TrueNegative = Zero
+                  FalseNegative = Zero
+                  Bias = Zero }
+
+        let normalizedConfusionMatrix (C: ConfusionMatrix) =
+            let total = C.Count
+
+            { TruePositive = C.TruePositive / total
+              FalsePositive = C.FalsePositive / total
+              TrueNegative = C.TrueNegative / total
+              FalseNegative = C.FalseNegative / total
+              Bias = C.Bias }
+
         ///Sum of true positive and true negative rates.
         let accuracy (C: ConfusionMatrix) =
             (C.TruePositive + C.TrueNegative) / C.Count
+
+        let cost_sensitive_misclassification_loss (cost: float32) (C: ConfusionMatrix) =
+            let total = C.Count
+            let cost_pos = C.FalsePositive * cost
+            let cost_neg = C.FalseNegative
+            (cost_pos + cost_neg) / total
 
         ///True positive rate.
         let truePositiveRate (C: ConfusionMatrix) = C.TruePositive / C.PostitiveCount
@@ -96,23 +141,19 @@ module PerformanceMeasures =
               RocCurve: (float32 * float32 * float32)[]
               AUC: float32 }
 
-        let createConfusionCurve
-            (testSet: ('instance * int) seq)
-            (predictor: IPredictor<'instance, ProbabilityVector>)
-            =
+        let createConfusionCurve (testSet: ('instance * BinaryLabel) seq) (predictor: IPredictor<'instance, Score>) =
             let scoredLabels =
                 testSet |> Seq.map (fun (x, y) -> let p = predictor.Predict x in y, p)
 
-            let sortedScoredLabels = scoredLabels |> Seq.sortBy (fun (y, p) -> p.[0])
+            let sortedScoredLabels = scoredLabels |> Seq.sortBy snd
 
             let nNegatives, nPositives, n =
                 sortedScoredLabels
                 |> Seq.fold
                     (fun (neg, pos, n) (y, _) ->
                         match y with
-                        | 1 -> neg + One, pos, n + One
-                        | 0 -> neg, pos + One, n + One
-                        | _ -> failwith "Unexpected Label")
+                        | Positive -> neg + One, pos, n + One
+                        | Negative -> neg, pos + One, n + One)
                     (Zero, Zero, Zero)
 
             let initialConfusionMatrix =
@@ -120,7 +161,7 @@ module PerformanceMeasures =
                   FalsePositive = nNegatives
                   TrueNegative = Zero
                   FalseNegative = Zero
-                  Bias = (snd (Seq.head sortedScoredLabels)).[0] }
+                  Bias = snd (Seq.head sortedScoredLabels) }
 
             let confusionList =
                 sortedScoredLabels
@@ -130,17 +171,16 @@ module PerformanceMeasures =
 
                         let newC =
                             match y with
-                            | 0 ->
+                            | Negative ->
                                 { C with
                                     TruePositive = C.TruePositive - One
                                     FalseNegative = C.FalseNegative + One
-                                    Bias = p.[0] }
-                            | 1 ->
+                                    Bias = p }
+                            | Positive ->
                                 { C with
                                     TrueNegative = C.TrueNegative + One
                                     FalsePositive = C.FalsePositive - One
-                                    Bias = p.[0] }
-                            | _ -> failwith "Unexpected Label"
+                                    Bias = p }
 
                         newC :: cl)
                     [ initialConfusionMatrix ]

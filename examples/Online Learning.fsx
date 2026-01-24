@@ -4,7 +4,8 @@ wherein data is learned from and predictions are assessed "as they come", rather
 *)
 
 #r "nuget: XPlot.Plotly"
-#r "nuget: FLearn, 2.1.2"
+#r @"../bin/Release/net7.0/FLearn.dll"
+#r "nuget: MathNet.Numerics.FSharp"
 
 open System
 open FLearn
@@ -23,11 +24,11 @@ let runningAverage (arr: float32[]) =
     res
 
 //Data -- You will need to change this to point to a local version of the Adult Census UCI data set to replicate my results.
-let path = @"C:\Users\User\OneDrive\Data\Adult Data Set\"
-let trainPath = path + "adult.txt"
+let path = @"C:\Users\brend\OneDrive\Data\Adult Data Set\"
+let trainPath = path + "adult_train.svm"
 
 //Set the expected dimension of the input data and parse lib SVM format data to a vector and label.
-let d = 124
+let d = 105
 
 let parse (s: string) =
     let blocks = s.TrimEnd(' ').Split(' ')
@@ -35,17 +36,17 @@ let parse (s: string) =
     let label =
         match blocks.[0] with
         | "-1" -> 0
-        | "+1" -> 1
+        | "1" -> 1
         | _ -> failwith "Invalid Label"
 
     let featureVector = DenseVector.zero d
+    featureVector.[d - 1] <- 1.0f
 
     for s in blocks.[1..] do
         let stuff = s.Split(':')
-        let index = int stuff.[0] - 1
+        let index = int stuff.[0]
         let value = float32 stuff.[1]
         featureVector.[index] <- value
-        featureVector.[d - 1] <- 1.0f
 
     (featureVector, label)
 
@@ -54,7 +55,7 @@ let train = IO.File.ReadLines(trainPath) |> Seq.map parse
 //Online Logistic Regression - Once Again we setup our loss, feature map and learner.
 let loss = logLoss 2
 let features = identityFeatureMap d
-let learner = createSGDLearner loss features
+let learner = createAdaGradLearner 0.01f loss features
 
 //Here we setup our online run
 let onlineRun =
@@ -70,7 +71,6 @@ let onlineRun =
 
 //Here we calculate the batch performance against the whole training set. Note that it is very close to the online performance of our learner.
 let performance = PerformanceMeasures.lossBatch loss train learner
-let performanceOnline = onlineRun[onlineRun.Length - 1]
 
 //Finally, we plot our results, showing how the online performance improves with time, and approaches the batch performance.
 [ Scatter(x = [ 0 .. onlineRun.Length - 1 ], y = onlineRun, name = "Online Performance")
