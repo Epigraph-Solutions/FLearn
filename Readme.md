@@ -1,3 +1,6 @@
+<img width="1254" height="1254" alt="FLearn Logo" src="https://github.com/user-attachments/assets/a71d16b0-ac19-42f6-b7b1-04cc045afb62" />
+
+
 ## FLearn
 
 > 1. To learn through failure.
